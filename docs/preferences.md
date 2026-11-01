@@ -30,11 +30,34 @@ save separately, so the only button in the dialog is **Done**.
 | Setting | Effect |
 |---|---|
 | Strict aliases | Requires an alias on every turnout, sensor, loco, route, and sequence — makes EXRAIL code read by name instead of by number. |
+| Alias sort order | How aliases are ordered within each type group in the [Aliases](config/aliases.md) editor and `myAliases.h`: by **Name** (alphabetical) or by **ID** (numeric). |
 | Default view | Which tab each config file editor opens on: **Visual** (form controls) or **Raw** (text). |
 
 ## Block Editor
 
 **Play sounds** — plays click, connect, and delete sound effects in the EXRAIL block editor.
+
+The dialog footer also shows the app's version number (it's on the home screen too).
+
+## Updates
+
+Shows the version of DCC Rail Commander you're running, and whether a newer one is available.
+
+| Setting | Effect |
+|---|---|
+| Check for updates | Checks GitHub for a newer release right now. If there is one, the update dialog opens with its release notes — even if you previously chose **Skip this version**. |
+| Check automatically | Checks a few seconds after the app starts, then every 4 hours while it stays open. Only the startup check opens the update dialog; later checks just show the **Update** button. Turn off to keep the app from contacting GitHub except when you press **Check for updates** (fetching DCC-EX firmware still needs network access). |
+
+When an update is found, an **Update** button appears in the header (the home screen's top-right corner, or the workspace toolbar next to Settings). It reads **Update available**, then **Updating 42%** while downloading, then **Restart to update**; click it to open the update dialog. The dialog shows the release notes for every version newer than the one
+you have, newest first. From there:
+
+- **Download update** downloads it in the background. You can close the dialog with **Later** while it downloads.
+- **Restart & install** closes the app, installs the update, and reopens it. If you have unsaved configuration
+  changes, you're asked first. If you choose **Later** instead, the update installs the next time you quit.
+- **Skip this version** stops the automatic check from asking about this version again. A newer release will
+  still be offered.
+
+Updates are only available in the installed app.
 
 !!! tip "Theme and default view apply everywhere"
     Theme and Default view take effect immediately across the whole app, including editors already open — no

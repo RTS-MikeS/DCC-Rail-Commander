@@ -19,6 +19,8 @@ export interface Roster {
     defineFriendlyName?: string;
     /** Custom functions appended to a group via preprocessor string concatenation (e.g., COMMON "/EXTRA"). */
     appendedFunctions?: RosterFunction[];
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the ROSTER line - a layer *above* the #define groups (see parseFolderMeta). */
+    folder?: string;
 }
 
 /** A #define group derived from the roster — one per unique `functionMacro` value. */
@@ -67,7 +69,13 @@ export type TurnoutProfile = 'Instant' | 'Fast' | 'Medium' | 'Slow' | 'Bounce';
 export type TurnoutType = 'SERVO' | 'DCC' | 'DCCL' | 'PIN' | 'VIRTUAL';
 export type TurnoutDefaultState = 'CLOSED' | 'THROWN';
 
-interface TurnoutBase { id: number; description: string; comment?: string; defaultState: TurnoutDefaultState; }
+/**
+ * `folder` / `parentId` place a turnout in the editor's tree view and are purely organisational —
+ * they live in `// @tree:` comment lines above the entry (see parseTurnoutFromFile), so the EXRAIL
+ * macros themselves are untouched. At most one is set: `folder` is a "/"-separated path of
+ * organisation-only folders, `parentId` is the id of a VIRTUAL turnout acting as the parent node.
+ */
+interface TurnoutBase { id: number; description: string; comment?: string; defaultState: TurnoutDefaultState; folder?: string; parentId?: number; }
 
 /** SERVO_TURNOUT(id, pin, activeAngle, inactiveAngle, profile[, "desc"]) */
 export interface ServoTurnout extends TurnoutBase {
@@ -116,6 +124,8 @@ export interface AutomationData {
 export interface SensorEntry {
     id: number;
     description: string;
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the entry — see parseFolderMeta. */
+    folder?: string;
 }
 
 /** SIGNAL(redPin, amberPin, greenPin) — three GPIO/HAL pins driving LEDs directly */
@@ -125,6 +135,8 @@ export interface PinSignal {
     amber: number;
     green: number;
     description?: string;
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the entry — see parseFolderMeta. */
+    folder?: string;
 }
 
 /** DCC_SIGNAL(id, addr, subAddr) — DCC accessory decoder-controlled signal */
@@ -134,6 +146,8 @@ export interface DccSignal {
     addr: number;
     subAddr: number;
     description?: string;
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the entry — see parseFolderMeta. */
+    folder?: string;
 }
 
 export type SignalEntry = PinSignal | DccSignal;
@@ -151,6 +165,8 @@ export interface RouteEntry {
      * own. See serializeRoutesToFile()'s matching behavior.
      */
     body: string;
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the entry — see parseFolderMeta. */
+    folder?: string;
 }
 
 export interface SequenceEntry {
@@ -161,6 +177,8 @@ export interface SequenceEntry {
     comment?: string;
     /** Raw text between SEQUENCE(...) and the next SEQUENCE(...)/EOF — see RouteEntry.body. */
     body: string;
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the entry — see parseFolderMeta. */
+    folder?: string;
 }
 
 /**
@@ -180,6 +198,8 @@ export interface AutomationEntry {
     comment?: string;
     /** Raw text between AUTOMATION(...) and the next ROUTE/AUTOMATION/SEQUENCE(...)/EOF — see RouteEntry.body. */
     body: string;
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the entry — see parseFolderMeta. */
+    folder?: string;
 }
 
 /**
@@ -201,12 +221,18 @@ export interface EventHandlerEntry {
     name?: string;
     /** Optional longer free-form note, stored as a `//`-comment block on the line(s) immediately above the header(s) — mirrors Roster.comment. */
     comment?: string;
+    /** Unique, stable identity stored as a `// @id:` comment above the header(s) - handlers have no id argument of their own. */
+    uid?: string;
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the entry - see parseFolderMeta. */
+    folder?: string;
 }
 
 export interface AliasEntry {
     name: string;
     value: string;
     aliasType?: AliasTargetType;
+    /** Logical tree folder ("A/B"), stored as a `// @tree:` comment above the entry - see parseFolderMeta. */
+    folder?: string;
 }
 
 export type AliasTargetType = 'Roster' | 'Turnout' | 'Sensor' | 'Route' | 'Sequence' | 'Automation';
@@ -444,12 +470,55 @@ export function parseSensorsFromFile(fileContent: string): SensorEntry[] {
     }
 
     found.sort((a, b) => a.index - b.index);
-    return found.flatMap(f => f.entries);
+    const { placements } = parseFolderMeta(fileContent, sensorEntryKey);
+    return found.flatMap(f => f.entries).map(e => {
+        const folder = placements.get(String(e.id));
+        return folder ? { ...e, folder } : e;
+    });
 }
 
-export function serializeSensorsToFile(sensors: SensorEntry[]): string {
-    return sensors.map(s => `// Sensor ${s.id}${s.description ? ` - ${s.description}` : ''}`).join('\n');
+/** Entry-start key for parseFolderMeta: the canonical `// Sensor <id>` comment or a JMRI_SENSOR(vpin...) call. */
+function sensorEntryKey(line: string): string | null {
+    const m = /^\s*\/\/\s*Sensor\s+(\d+)\b/i.exec(line) ?? /^\s*JMRI_SENSOR(?:_NOPULLUP)?\s*\(\s*(\d+)/.exec(line);
+    return m ? m[1] : null;
 }
+
+/** Folder declarations (`// @tree-folder:`) in mySensors.h — empty folders only matter here. */
+export function parseSensorFolders(fileContent: string): string[] {
+    return parseFolderMeta(fileContent, sensorEntryKey).folders;
+}
+
+export function serializeSensorsToFile(sensors: SensorEntry[], folders: string[] = []): string {
+    return [
+        ...serializeFolderDecls(sensors, folders),
+        ...sensors.flatMap(s => [...folderTagLines(s.folder), `// Sensor ${s.id}${s.description ? ` - ${s.description}` : ''}`]),
+    ].join('\n');
+}
+
+/** Stamps `folder` onto entries whose key has a `// @tree:` placement. */
+function withFolders<T extends { folder?: string }>(entries: T[], placements: Map<string, string>, keyOf: (e: T) => string): T[] {
+    return entries.map(e => {
+        const folder = placements.get(keyOf(e));
+        return folder ? { ...e, folder } : e;
+    });
+}
+
+const signalLineKey = (line: string): string | null => {
+    const dcc = /^\s*DCC_SIGNAL\s*\(\s*(\d+)/.exec(line);
+    if (dcc) return `D${dcc[1]}`;
+    const pin = /^\s*SIGNAL\s*\(\s*(\d+)/.exec(line);
+    return pin ? `P${pin[1]}` : null;
+};
+const signalKey = (s: SignalEntry): string => (s.type === 'DCC' ? `D${s.id}` : `P${s.red}`);
+const idLineKey = (macro: string) => (line: string): string | null => new RegExp(`^\\s*${macro}\\s*\\(\\s*(\\d+)`).exec(line)?.[1] ?? null;
+const routeLineKey = idLineKey('ROUTE');
+const sequenceLineKey = idLineKey('SEQUENCE');
+const automationLineKey = idLineKey('AUTOMATION');
+
+export function parseSignalFolders(fileContent: string): string[] { return parseFolderMeta(fileContent, signalLineKey).folders; }
+export function parseRouteFolders(fileContent: string): string[] { return parseFolderMeta(fileContent, routeLineKey).folders; }
+export function parseSequenceFolders(fileContent: string): string[] { return parseFolderMeta(fileContent, sequenceLineKey).folders; }
+export function parseAutomationFolders(fileContent: string): string[] { return parseFolderMeta(fileContent, automationLineKey).folders; }
 
 export function parseSignalsFromFile(fileContent: string): SignalEntry[] {
     const uncommented = fileContent
@@ -469,13 +538,17 @@ export function parseSignalsFromFile(fileContent: string): SignalEntry[] {
         out.push({ type: 'DCC', id: parseInt(m[1], 10), addr: parseInt(m[2], 10), subAddr: parseInt(m[3], 10), description: m[4] || '' });
     }
 
-    return out;
+    return withFolders(out, parseFolderMeta(fileContent, signalLineKey).placements, signalKey);
 }
 
-export function serializeSignalsToFile(signals: SignalEntry[]): string {
-    return signals.map(s => (
-        s.type === 'DCC' ? `DCC_SIGNAL(${s.id}, ${s.addr}, ${s.subAddr})` : `SIGNAL(${s.red}, ${s.amber}, ${s.green})`
-    )).join('\n');
+export function serializeSignalsToFile(signals: SignalEntry[], folders: string[] = []): string {
+    return [
+        ...serializeFolderDecls(signals, folders),
+        ...signals.flatMap(s => [
+            ...folderTagLines(s.folder),
+            s.type === 'DCC' ? `DCC_SIGNAL(${s.id}, ${s.addr}, ${s.subAddr})` : `SIGNAL(${s.red}, ${s.amber}, ${s.green})`,
+        ]),
+    ].join('\n');
 }
 
 /** Matches a DONE, RETURN, or FOLLOW(...) line, however it's indented — the three statements
@@ -580,6 +653,15 @@ function scanBlockBody(lines: string[], start: number, blockStart: RegExp): { bo
         bodyLines.push(line);
         i++;
     }
+    // A folder tag for the *next* block sits just above its header; when this body had no terminator
+    // it was scanned into this one — hand it back so it isn't duplicated on re-serialize.
+    for (let k = bodyLines.length - 1; k >= 0; k--) {
+        const t = bodyLines[k].trim();
+        const isTag = TREE_TAG_RE.test(t) || TREE_FOLDER_RE.test(t) || ID_TAG_RE.test(t);
+        if (isTag) { bodyLines.splice(k, 1); continue; }
+        if (t === '' || t.startsWith('//')) continue;
+        break;
+    }
     return { body: bodyLines.join('\n').trim(), next: i };
 }
 
@@ -599,7 +681,10 @@ function extractLeadingComment(pendingLines: string[]): string | undefined {
     let start = end;
     while (start > 0 && /^\s*\/\//.test(pendingLines[start - 1])) start--;
     if (start === end) return undefined;
-    return pendingLines.slice(start, end).map(l => l.replace(/^\s*\/\/\s?/, '')).join('\n');
+    // Folder-tree tags sit in the same `//` run above a header but aren't part of the user's comment.
+    const kept = pendingLines.slice(start, end).filter(l => !TREE_TAG_RE.test(l) && !TREE_FOLDER_RE.test(l) && !ID_TAG_RE.test(l));
+    if (kept.length === 0) return undefined;
+    return kept.map(l => l.replace(/^\s*\/\/\s?/, '')).join('\n');
 }
 
 export function parseRoutesFromFile(fileContent: string): RouteEntry[] {
@@ -620,7 +705,7 @@ export function parseRoutesFromFile(fileContent: string): RouteEntry[] {
         }
         i++;
     }
-    return out;
+    return withFolders(out, parseFolderMeta(fileContent, routeLineKey).placements, r => String(r.id));
 }
 
 /**
@@ -646,7 +731,7 @@ export function parseAutomationsFromFile(fileContent: string): AutomationEntry[]
         }
         i++;
     }
-    return out;
+    return withFolders(out, parseFolderMeta(fileContent, automationLineKey).placements, a => String(a.id));
 }
 
 /**
@@ -905,9 +990,10 @@ export function commentOutUnrecognizedExrailBlocks(
     });
 }
 
-export function serializeRoutesToFile(routes: RouteEntry[]): string {
-    const lines: string[] = [];
+export function serializeRoutesToFile(routes: RouteEntry[], folders: string[] = []): string {
+    const lines: string[] = serializeFolderDecls(routes, folders);
     for (const r of routes) {
+        lines.push(...folderTagLines(r.folder));
         const comment = r.comment && r.comment.trim() ? ` // ${r.comment.trim()}` : '';
         lines.push(`ROUTE(${r.id}, "${r.description}")${comment}`);
         const trimmedBody = (r.body ?? '').trim();
@@ -923,9 +1009,10 @@ export function serializeRoutesToFile(routes: RouteEntry[]): string {
 
 /** Mirrors serializeRoutesToFile exactly — AUTOMATION shares ROUTE's exact shape (id, quoted
  *  description, optional trailing comment, DONE-or-user's-own-terminator body). */
-export function serializeAutomationsToFile(automations: AutomationEntry[]): string {
-    const lines: string[] = [];
+export function serializeAutomationsToFile(automations: AutomationEntry[], folders: string[] = []): string {
+    const lines: string[] = serializeFolderDecls(automations, folders);
     for (const a of automations) {
+        lines.push(...folderTagLines(a.folder));
         const comment = a.comment && a.comment.trim() ? ` // ${a.comment.trim()}` : '';
         lines.push(`AUTOMATION(${a.id}, "${a.description}")${comment}`);
         const trimmedBody = (a.body ?? '').trim();
@@ -959,12 +1046,13 @@ export function parseSequencesFromFile(fileContent: string): SequenceEntry[] {
         pendingLines.push(lines[i]);
         i++;
     }
-    return out;
+    return withFolders(out, parseFolderMeta(stripGeneratorHeader(fileContent), sequenceLineKey).placements, q => String(q.id));
 }
 
-export function serializeSequencesToFile(seqs: SequenceEntry[]): string {
-    const lines: string[] = [];
+export function serializeSequencesToFile(seqs: SequenceEntry[], folders: string[] = []): string {
+    const lines: string[] = serializeFolderDecls(seqs, folders);
     for (const s of seqs) {
+        lines.push(...folderTagLines(s.folder));
         if (s.comment && s.comment.trim()) {
             for (const commentLine of s.comment.trim().split('\n')) lines.push(`// ${commentLine}`);
         }
@@ -1012,11 +1100,34 @@ export function parseEventHandlersFromFile(fileContent: string): EventHandlerEnt
     const lines = stripGeneratorHeader(fileContent).split('\n');
     const out: EventHandlerEntry[] = [];
     const handlerStart = /^\s*(ON[A-Z0-9_]*)\s*(?:\([^)]*\))?\s*(?:\/\/\s*(.*))?\s*$/;
+    // `// @id:` / `// @tree:` tags sit above a handler's first header; collect them by header line
+    // up front so a tag is never lost when the previous handler's body had no terminator.
+    const meta = new Map<number, { uid?: string; folder?: string }>();
+    {
+        let uid: string | undefined;
+        let folder: string | undefined;
+        lines.forEach((line, idx) => {
+            const idTag = ID_TAG_RE.exec(line);
+            if (idTag) { uid = idTag[1]; return; }
+            if (TREE_FOLDER_RE.test(line)) return;
+            const tag = TREE_TAG_RE.exec(line);
+            if (tag) { folder = PARENT_REF_RE.test(tag[1]) ? undefined : (normalizeFolderPath(tag[1]) || undefined); return; }
+            if (handlerStart.test(line)) {
+                if (idx === 0 || !handlerStart.test(lines[idx - 1])) meta.set(idx, { uid, folder });
+                uid = undefined; folder = undefined;
+                return;
+            }
+            const t = line.trim();
+            if (t === '' || t.startsWith('//')) return;
+            uid = undefined; folder = undefined;
+        });
+    }
     let pendingLines: string[] = [];
     let i = 0;
     while (i < lines.length) {
         const m = lines[i].match(handlerStart);
         if (m) {
+            const placed = meta.get(i);
             const command = m[1];
             const name = m[2] ? m[2].trim() : undefined;
             const comment = extractLeadingComment(pendingLines);
@@ -1030,7 +1141,7 @@ export function parseEventHandlersFromFile(fileContent: string): EventHandlerEnt
             const { body, next } = scanBlockBody(lines, j, handlerStart);
             i = next;
             const text = body ? `${headerLines.join('\n')}\n${body}` : headerLines.join('\n');
-            out.push({ command, text, name, comment });
+            out.push({ command, text, name, comment, ...(placed?.uid ? { uid: placed.uid } : {}), ...(placed?.folder ? { folder: placed.folder } : {}) });
             continue;
         }
         pendingLines.push(lines[i]);
@@ -1039,15 +1150,31 @@ export function parseEventHandlersFromFile(fileContent: string): EventHandlerEnt
     return out;
 }
 
-export function serializeEventHandlersToFile(handlers: EventHandlerEntry[]): string {
-    return handlers.map(h => {
+export function parseEventHandlerFolders(fileContent: string): string[] {
+    return parseFolderMeta(fileContent, () => null).folders;
+}
+
+/** A short random token for `// @id:` - unique among the ids in `taken`. */
+export function newEventHandlerUid(taken: Set<string>): string {
+    for (;;) {
+        const uid = Math.random().toString(36).slice(2, 8);
+        if (uid.length === 6 && !taken.has(uid)) return uid;
+    }
+}
+
+export function serializeEventHandlersToFile(handlers: EventHandlerEntry[], folders: string[] = []): string {
+    const decls = serializeFolderDecls(handlers, folders);
+    const body = handlers.map(h => {
+        const tagBlock = [...folderTagLines(h.folder), ...(h.uid ? [`// @id: ${h.uid}`] : [])];
+        const tags = tagBlock.length ? tagBlock.join('\n') + '\n' : '';
         const commentBlock = h.comment && h.comment.trim()
             ? h.comment.trim().split('\n').map(l => `// ${l}`).join('\n') + '\n'
             : '';
         const lines = h.text.trim().split('\n');
         if (h.name && h.name.trim() && lines.length > 0) lines[0] = `${lines[0]} // ${h.name.trim()}`;
-        return `${commentBlock}${lines.join('\n')}`;
+        return `${tags}${commentBlock}${lines.join('\n')}`;
     }).join('\n\n');
+    return decls.length ? `${decls.join('\n')}\n\n${body}` : body;
 }
 
 // ─── ROUTE/AUTOMATION/SEQUENCE ID rules ──────────────────────────────────────
@@ -1132,14 +1259,17 @@ export function parseAliasesFromFile(fileContent: string): AliasEntry[] {
     while ((m = aliasRe.exec(uncommented)) !== null) {
         out.push({ name: m[1], value: (m[2] ?? '').trim(), aliasType: parseAliasTypeComment(m[3]) });
     }
-    return out;
+    return withFolders(out, parseFolderMeta(fileContent, aliasLineKey).placements, a => a.name);
 }
 
+const aliasLineKey = (line: string): string | null => /^\s*ALIAS\s*\(\s*([A-Za-z_]\w*)/.exec(line)?.[1] ?? null;
+export function parseAliasFolders(fileContent: string): string[] { return parseFolderMeta(fileContent, aliasLineKey).folders; }
+
 export function serializeAliasesToFile(aliases: AliasEntry[]): string {
-    return aliases.map(a => {
+    return aliases.flatMap(a => {
         let line = a.value.trim() === '' ? `ALIAS(${a.name})` : `ALIAS(${a.name}, ${a.value})`;
         if (a.aliasType) line += ` // type: ${a.aliasType}`;
-        return line;
+        return [...folderTagLines(a.folder), line];
     }).join('\n');
 }
 
@@ -1275,10 +1405,13 @@ export function parseRosterFromFile(fileContent: string): Roster[] {
         }
     }
 
-    return entries;
+    return withFolders(entries, parseFolderMeta(fileContent, rosterLineKey).placements, r => String(r.dccAddress));
 }
 
-export function serializeRosterToFile(roster: Roster[]): string {
+const rosterLineKey = (line: string): string | null => /^\s*ROSTER\s*\(\s*(\d+)/.exec(line)?.[1] ?? null;
+export function parseRosterFolders(fileContent: string): string[] { return parseFolderMeta(fileContent, rosterLineKey).folders; }
+
+export function serializeRosterToFile(roster: Roster[], folders: string[] = []): string {
     const lines: string[] = [];
 
     // ── 1. Collect user-assigned macros (preserve name + friendly name) ──────
@@ -1323,6 +1456,10 @@ export function serializeRosterToFile(roster: Roster[]): string {
     }
 
     // ── 3. Emit #define lines ────────────────────────────────────────────────
+    // Folders no entry implies are declared first; folder tags themselves go above ROSTER lines only,
+    // so the #define block and the ROSTER macros are unchanged.
+    const decls = serializeFolderDecls(roster, folders);
+    if (decls.length > 0) lines.push(...decls, '');
     for (const [macroName, { funcString, friendlyName }] of userMacros) {
         let defineLine = `#define ${macroName} "${funcString}"`
         if (friendlyName) defineLine += ` // friendlyName: "${friendlyName}"`
@@ -1350,7 +1487,7 @@ export function serializeRosterToFile(roster: Roster[]): string {
 
         let line = `ROSTER(${entry.dccAddress}, "${entry.name}", ${funcField})`
         if (entry.comment) line += ` // ${entry.comment}`
-        lines.push(line)
+        lines.push(...folderTagLines(entry.folder), line)
     }
 
     return lines.join('\n')
@@ -1409,7 +1546,136 @@ export function commentInvalidTurnoutLines(text: string): { processedText: strin
     return { processedText: processedLines.join('\n'), invalidLines };
 }
 
+/** Normalises a folder path: trims each "/"-separated segment and drops empty ones ("A / /B" → "A/B"). */
+export function normalizeFolderPath(path: string): string {
+    return path.split('/').map(seg => seg.trim()).filter(Boolean).join('/');
+}
+
+const TREE_TAG_RE = /^\s*\/\/\s*@tree:\s*(.*?)\s*$/;
+const TREE_FOLDER_RE = /^\s*\/\/\s*@tree-folder:\s*(.*?)\s*$/;
+/** `// @id: <token>` - a unique, stable identity for an entry that has no id of its own (event handlers). */
+const ID_TAG_RE = /^\s*\/\/\s*@id:\s*(\S+)\s*$/;
+const TURNOUT_CALL_RE = /(?:SERVO_|PIN_|VIRTUAL_)?TURNOUTL?\s*\(\s*(\d+)/;
+const PARENT_REF_RE = /^#\s*(\d+)$/;
+
+/**
+ * Reads the tree-view metadata comments from myTurnouts.h text:
+ *
+ *   // @tree: Yard/East Throat      → the next turnout lives in that folder
+ *   // @tree: #210                  → the next turnout is a child of VIRTUAL turnout 210
+ *   // @tree-folder: Yard/Spare     → declares a folder that has no turnouts (yet)
+ *
+ * A tag applies to the next turnout call; `// [INVALID]` lines and any other code line drop a
+ * pending tag so it can't attach to the wrong entry.
+ */
+export function parseTurnoutTreeMeta(fileContent: string): {
+    placements: Map<number, { folder?: string; parentId?: number }>;
+    folders: string[];
+} {
+    const placements = new Map<number, { folder?: string; parentId?: number }>();
+    const folders: string[] = [];
+    let pending: { folder?: string; parentId?: number } | null = null;
+    for (const line of fileContent.split('\n')) {
+        const folderDecl = TREE_FOLDER_RE.exec(line);
+        if (folderDecl) {
+            const path = normalizeFolderPath(folderDecl[1]);
+            if (path && !folders.includes(path)) folders.push(path);
+            continue;
+        }
+        const tag = TREE_TAG_RE.exec(line);
+        if (tag) {
+            const ref = PARENT_REF_RE.exec(tag[1]);
+            if (ref) pending = { parentId: parseInt(ref[1], 10) };
+            else {
+                const path = normalizeFolderPath(tag[1]);
+                pending = path ? { folder: path } : null;
+            }
+            continue;
+        }
+        const trimmed = line.trim();
+        if (trimmed === '') continue;
+        if (trimmed.startsWith('//')) {
+            if (trimmed.startsWith('// [INVALID]')) pending = null;
+            continue;
+        }
+        const call = TURNOUT_CALL_RE.exec(line);
+        if (call && pending) placements.set(parseInt(call[1], 10), pending);
+        pending = null;
+    }
+    return { placements, folders };
+}
+
+/** The folders declared with `// @tree-folder:` (empty folders) — see parseTurnoutTreeMeta. */
+export function parseTurnoutFolders(fileContent: string): string[] {
+    return parseTurnoutTreeMeta(fileContent).folders;
+}
+
+/**
+ * Generic form of parseTurnoutTreeMeta for the other config files (sensors, signals, routes, ...):
+ * `// @tree: A/B` above an entry puts it in that folder and `// @tree-folder: A/B` declares an empty
+ * one. `keyOf` returns a stable key for a line that *starts an entry* (or null) — the tag attaches
+ * to the next such line. Blank lines and ordinary comments between a tag and its entry are
+ * skipped; any other line drops the pending tag so it can't attach to the wrong entry. Folders only
+ * — the `#id` parent form is turnout-specific and ignored here.
+ */
+export function parseFolderMeta(
+    fileContent: string,
+    keyOf: (line: string) => string | null,
+): { placements: Map<string, string>; folders: string[] } {
+    const placements = new Map<string, string>();
+    const folders: string[] = [];
+    let pending: string | null = null;
+    for (const line of fileContent.split('\n')) {
+        const folderDecl = TREE_FOLDER_RE.exec(line);
+        if (folderDecl) {
+            const path = normalizeFolderPath(folderDecl[1]);
+            if (path && !folders.includes(path)) folders.push(path);
+            continue;
+        }
+        const tag = TREE_TAG_RE.exec(line);
+        if (tag) {
+            pending = PARENT_REF_RE.test(tag[1]) ? null : (normalizeFolderPath(tag[1]) || null);
+            continue;
+        }
+        const key = keyOf(line);
+        if (key !== null) {
+            if (pending) placements.set(key, pending);
+            pending = null;
+            continue;
+        }
+        const trimmed = line.trim();
+        if (trimmed === '') continue;
+        if (trimmed.startsWith('//') && !trimmed.startsWith('// [INVALID]')) continue;
+        pending = null;
+    }
+    return { placements, folders };
+}
+
+/** `// @tree-folder:` declarations for folders no item already implies (itself or via a deeper path). */
+export function serializeFolderDecls(items: { folder?: string }[], folders: string[]): string[] {
+    const implied = new Set<string>();
+    for (const t of items) {
+        if (!t.folder) continue;
+        const segs = t.folder.split('/');
+        for (let i = 1; i <= segs.length; i++) implied.add(segs.slice(0, i).join('/'));
+    }
+    return folders.filter(f => f && !implied.has(f)).map(f => `// @tree-folder: ${f}`);
+}
+
+/** The `// @tree:` line to emit above an entry (empty when it sits at the top level). */
+export function folderTagLines(folder: string | undefined): string[] {
+    return folder ? [`// @tree: ${folder}`] : [];
+}
+
 export function parseTurnoutFromFile(fileContent: string): Turnout[] {
+    const { placements } = parseTurnoutTreeMeta(fileContent);
+    return parseTurnoutEntries(fileContent).map(t => {
+        const place = placements.get(t.id);
+        return place ? { ...t, ...place } : t;
+    });
+}
+
+function parseTurnoutEntries(fileContent: string): Turnout[] {
     // Strip // [INVALID] comment lines so they are not re-parsed.
     const uncommentedContent = fileContent
         .split('\n')
@@ -1505,10 +1771,22 @@ export function parseTurnoutFromFile(fileContent: string): Turnout[] {
 const descriptionArg = (description: string): string =>
     description ? (description === 'HIDDEN' ? ', HIDDEN' : `, "${description}"`) : '';
 
-export function serializeTurnoutToFile(turnouts: Turnout[]): string {
+export function serializeTurnoutToFile(turnouts: Turnout[], folders: string[] = []): string {
     const lines: string[] = [];
+    // Only folders no turnout already implies (itself or via a deeper path) need an explicit declaration.
+    const implied = new Set<string>();
+    for (const t of turnouts) {
+        if (!t.folder) continue;
+        const segs = t.folder.split('/');
+        for (let i = 1; i <= segs.length; i++) implied.add(segs.slice(0, i).join('/'));
+    }
+    for (const f of folders) {
+        if (f && !implied.has(f)) lines.push(`// @tree-folder: ${f}`);
+    }
     for (const t of turnouts) {
         let line: string;
+        if (t.parentId !== undefined) lines.push(`// @tree: #${t.parentId}`);
+        else if (t.folder) lines.push(`// @tree: ${t.folder}`);
         if (t.type === 'DCC') {
             line = `TURNOUT(${t.id}, ${t.addr}, ${t.subAddr}${descriptionArg(t.description)})`;
         } else if (t.type === 'DCCL') {

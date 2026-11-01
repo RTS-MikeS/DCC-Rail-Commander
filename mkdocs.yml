@@ -88,6 +88,7 @@ nav:
       - Automations: config/automations.md
       - Event Handlers: config/event-handlers.md
       - Aliases: config/aliases.md
+      - Folders and the Tree: config/folders.md
   - Compile & Upload: compile-upload.md
   - Serial Monitor: monitor.md
   - Throttle: throttle.md

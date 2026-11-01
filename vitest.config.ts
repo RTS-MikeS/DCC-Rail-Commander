@@ -28,7 +28,7 @@ export default defineConfig({
         // them. Aliasing keeps them inside the module graph so those mocks take
         // effect everywhere — see tests/stubs/README.md.
         alias: Object.fromEntries(
-            ['electron', 'python-shell', 'simple-git', 'serialport', 'usb', 'tar'].map((pkg) => [
+            ['electron', 'electron-updater', 'python-shell', 'simple-git', 'serialport', 'usb', 'tar'].map((pkg) => [
                 pkg,
                 fileURLToPath(new URL(`./tests/stubs/${pkg}.ts`, import.meta.url)),
             ]),

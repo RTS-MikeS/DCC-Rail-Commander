@@ -4,15 +4,18 @@
  * fetches the bundled toolchain via postinstall if it isn't already present
  * for this OS/arch), builds the renderer/main bundles, packages a native
  * installer with electron-builder for whatever OS this is run on, and prints
- * the path to the resulting executable.
+ * the path to the resulting executable. Each run's output goes into its own
+ * timestamped subfolder under release/ — old subfolders aren't cleaned up here.
  *
  *   pnpm release
  */
 
-import { readFile, readdir } from 'node:fs/promises'
+import { readFile, readdir, writeFile } from 'node:fs/promises'
 import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import yaml from 'js-yaml'
+import { isChannelFile, mergeUpdateInfo } from './merge-update-info.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -48,7 +51,11 @@ function checkNodeVersion(requiredRange) {
     log(`Node ${process.version} OK (requires ${requiredRange})`)
 }
 
-/** Finds the artifact(s) electron-builder just produced, so the final message is unambiguous. */
+/**
+ * Finds the files electron-builder just produced that belong on the GitHub release, so the final
+ * message is unambiguous: installers, their .blockmap files (used for differential update
+ * downloads), and the channel file(s) the in-app updater reads.
+ */
 async function findReleaseArtifacts(outputDir) {
     let entries
     try {
@@ -56,8 +63,29 @@ async function findReleaseArtifacts(outputDir) {
     } catch {
         return []
     }
-    const installerExts = ['.exe', '.dmg', '.appimage', '.deb']
-    return entries.filter((name) => installerExts.includes(name.slice(name.lastIndexOf('.')).toLowerCase()))
+    const releaseExts = ['.exe', '.dmg', '.appimage', '.deb', '.blockmap']
+    return entries.filter(
+        (name) => releaseExts.includes(name.slice(name.lastIndexOf('.')).toLowerCase()) || isChannelFile(name),
+    )
+}
+
+/** Parsed contents of every auto-update channel file currently in `outDir`, keyed by file name. */
+async function readChannelFiles(outDir) {
+    const result = {}
+    for (const name of (await readdir(outDir)).filter(isChannelFile)) {
+        result[name] = yaml.load(await readFile(join(outDir, name), 'utf-8'))
+    }
+    return result
+}
+
+/** Folds the first (x64) run's channel files into the ones the second (arm64) run just overwrote them with. */
+async function mergeChannelFiles(outDir, firstRun) {
+    const secondRun = await readChannelFiles(outDir)
+    for (const [name, first] of Object.entries(firstRun)) {
+        const merged = secondRun[name] ? mergeUpdateInfo(first, secondRun[name]) : first
+        await writeFile(join(outDir, name), yaml.dump(merged, { lineWidth: -1 }))
+        log(`Merged ${name}: ${merged.files.map((f) => f.url).join(', ')}`)
+    }
 }
 
 /**
@@ -89,14 +117,31 @@ async function main() {
     log(`Packaging into ${outputDir}/ (a fresh folder per run, so this build never has to overwrite a previous run's output)`)
     await run('pnpm', ['install'])
     await run('pnpm', ['build'])
-    await run('pnpm', ['exec', 'electron-builder', `-c.directories.output=${outputDir}`])
+    // `build.publish` in package.json is set so electron-builder writes the auto-update channel file
+    // and embeds app-update.yml, but uploading is done by hand with `gh release create` (RELEASE.md).
+    const outputArg = `-c.directories.output=${outputDir}`
+    const publishArg = '--publish never'
+    const outDir = join(ROOT, outputDir)
+
+    if (process.platform === 'win32') {
+        // electron-builder's NSIS target builds an extra "combined" installer (both archs bundled
+        // into one exe, picked at install time) whenever more than one arch is requested in a single
+        // invocation — see win.target's arch list in package.json. Running one invocation per arch
+        // keeps each build to just its own installer, avoiding that extra ~600MB artifact.
+        await run('pnpm', ['exec', 'electron-builder', '--win', '--x64', outputArg, publishArg])
+        const x64ChannelFiles = await readChannelFiles(outDir)
+        await run('pnpm', ['exec', 'electron-builder', '--win', '--arm64', outputArg, publishArg])
+        await mergeChannelFiles(outDir, x64ChannelFiles)
+    } else {
+        await run('pnpm', ['exec', 'electron-builder', outputArg, publishArg])
+    }
 
     const artifacts = await findReleaseArtifacts(outputDir)
     if (artifacts.length === 0) {
         log(`electron-builder finished, but no installer file was found under ${outputDir}/ — check the log above.`)
         return
     }
-    log('Executable ready:')
+    log('Release files ready (upload all of them to the GitHub release — see RELEASE.md):')
     for (const name of artifacts) {
         log(`  ${join(outputDir, name)}`)
     }

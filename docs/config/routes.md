@@ -9,6 +9,11 @@ sequence** block (`FOLLOW`, "effectively a GoTo") or call as a subroutine with *
 
 ## Layout
 
+!!! tip "Organize with folders"
+    This editor's sidebar is a tree: group routes into folders and drag them around. See
+    [Folders and the tree](folders.md).
+
+
 The left sidebar lists every route by description (or `Route <id>` if it has none); an amber dot marks any
 entry with no alias set while **Strict aliases** is enabled (see [Aliases](#aliases) below). Click a row to
 load it into the detail panel, or the **×** on a row to remove it. Click **+** to add a new route.

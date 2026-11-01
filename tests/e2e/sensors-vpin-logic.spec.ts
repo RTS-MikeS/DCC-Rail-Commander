@@ -32,6 +32,12 @@ function sensorRows(page: import('@playwright/test').Page) {
     return page.locator('sensors-editor .flex.items-end.gap-3')
 }
 
+// The tree is the nav and the right pane shows only the selected sensor (a new sensor is
+// auto-selected) — pick another by clicking its tree leaf.
+async function selectSensor(page: import('@playwright/test').Page, n: number) {
+    await page.getByTestId('tree-item').nth(n).click()
+}
+
 async function addSensor(page: import('@playwright/test').Page) {
     await page.getByRole('button', { name: 'Add Sensor' }).click()
 }
@@ -47,7 +53,7 @@ test.describe('Sensors VPin logic', () => {
         await expect(firstRow.locator('[data-field="pin-value"]')).toHaveValue('100')
 
         await addSensor(page)
-        const secondRow = sensorRows(page).nth(1)
+        const secondRow = sensorRows(page).first()
         await expect(secondRow.locator('[data-field="pin-value"]')).toHaveValue('101')
     })
 
@@ -57,6 +63,7 @@ test.describe('Sensors VPin logic', () => {
         await addSensor(page)
 
         // Strict aliases is on by default — this sensor has none yet.
+        await selectSensor(page, 0)
         const firstRow = sensorRows(page).first()
         const aliasInput = firstRow.locator('alias-picker input')
         await aliasInput.fill('MOVED_SENSOR')
@@ -71,7 +78,7 @@ test.describe('Sensors VPin logic', () => {
         // findNextFreeVpin always rescans from 100 — VPin 100 is free again, and is
         // lower than the second sensor's 101, so the third sensor lands back on 100.
         await addSensor(page)
-        const thirdRow = sensorRows(page).nth(2)
+        const thirdRow = sensorRows(page).first()
         await expect(thirdRow.locator('[data-field="pin-value"]')).toHaveValue('100')
 
         await switchToRaw(page)
@@ -113,9 +120,9 @@ test.describe('Sensors VPin logic — HAL board channel', () => {
 
         // Sensors editor's <vpin-picker> is unrestricted by `role`, so a servo-role
         // board (PCA9685) still shows up here — there's only one HAL device configured,
-        // so "the second <option>, after Direct MCU pin" unambiguously selects it without
+        // so "the first <option>" (boards are listed ahead of Direct MCU pin on an EX-CSB1) unambiguously selects it without
         // depending on the exact label text vpin-picker renders for it.
-        await row.locator('[data-field="pin-source"]').selectOption({ index: 1 })
+        await row.locator('[data-field="pin-source"]').selectOption({ index: 0 })
         await row.locator('[data-field="pin-channel"]').selectOption({ label: 'Ch 3' })
 
         // Channel 3 of a board starting at VPin 100 is VPin 102 (1-based channel numbering).
@@ -147,7 +154,7 @@ test.describe('Sensors VPin logic — HAL board channel', () => {
 
         // Move onto the board (channel 1) — for a board starting at VPin 100 this computes
         // back to the same VPin 100 the sensor already had.
-        await row.locator('[data-field="pin-source"]').selectOption({ index: 1 })
+        await row.locator('[data-field="pin-source"]').selectOption({ index: 0 })
         await expect(aliasInput).toHaveValue('TRACK1')
 
         // Now change the channel again, without ever leaving/refocusing the row.
@@ -176,16 +183,17 @@ test.describe('Sensors VPin logic — HAL board channel', () => {
         const firstAlias = firstRow.locator('alias-picker input')
         await firstAlias.fill('FIRST_ALIAS')
         await firstAlias.blur()
-        await firstRow.locator('[data-field="pin-source"]').selectOption({ index: 1 })
+        await firstRow.locator('[data-field="pin-source"]').selectOption({ index: 0 })
         await expect(firstAlias).toHaveValue('FIRST_ALIAS')
 
         await addSensor(page)
-        const secondRow = sensorRows(page).nth(1)
-        await secondRow.locator('[data-field="pin-source"]').selectOption({ index: 1 })
+        const secondRow = sensorRows(page).first()
+        await secondRow.locator('[data-field="pin-source"]').selectOption({ index: 0 })
         await secondRow.locator('[data-field="pin-channel"]').selectOption({ label: 'Ch 5' })
         await expect(secondRow.getByText('VPin 104', { exact: true })).toBeVisible()
 
-        await expect(firstAlias).toHaveValue('FIRST_ALIAS')
         await expect(secondRow.locator('alias-picker input')).toHaveValue('')
+        await selectSensor(page, 0)
+        await expect(firstAlias).toHaveValue('FIRST_ALIAS')
     })
 })

@@ -6,6 +6,11 @@ The Signals editor manages `mySignals.h` — signal heads made up of red/amber/g
 
 ## Visual and Raw views
 
+!!! tip "Organize with folders"
+    This editor's sidebar is a tree: group signals into folders and drag them around. See
+    [Folders and the tree](folders.md).
+
+
 Like other config files, Signals has a **Visual** tab (the row list described below) and a **Raw** tab — a
 Monaco text editor showing `mySignals.h` exactly as it will be written to disk. Edits made in either tab sync to
 the other.
