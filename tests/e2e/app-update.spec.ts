@@ -61,6 +61,23 @@ test.describe('app update', () => {
         await expect(dialog).toBeHidden()
     })
 
+    test('an Update button stays in the header after dismissing the dialog, and reopens it', async ({ page }) => {
+        await expect(page.getByTestId('update-dialog')).toBeVisible({ timeout: 20_000 })
+        await page.getByTestId('update-later').click()
+        await expect(page.getByTestId('update-dialog')).toBeHidden()
+
+        const button = page.getByTestId('update-button')
+        await expect(button).toBeVisible()
+        await expect(button).toContainText('Update available')
+
+        await button.click()
+        await expect(page.getByTestId('update-dialog')).toBeVisible()
+        await page.getByTestId('update-download').click()
+        await expect(page.getByTestId('update-install')).toBeVisible({ timeout: 10_000 })
+        await page.getByTestId('update-later').click()
+        await expect(button).toContainText('Restart to update')
+    })
+
     test('"Skip this version" is remembered', async ({ page, launched }) => {
         await expect(page.getByTestId('update-dialog')).toBeVisible({ timeout: 20_000 })
         await page.getByTestId('update-skip').click()

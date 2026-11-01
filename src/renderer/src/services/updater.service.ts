@@ -10,6 +10,9 @@ export const SKIPPED_VERSION_PREF = 'skippedUpdateVersion'
 /** Long enough that the startup check never competes with the app's own first-load work. */
 const STARTUP_CHECK_DELAY_MS = 5000
 
+/** How often a long-running session re-checks for a release published after launch. */
+const PERIODIC_CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000
+
 /**
  * Renderer side of app self-update. The main process owns the actual lifecycle (AppUpdaterService);
  * this mirrors its state for binding, runs the once-per-launch background check, and decides when
@@ -45,6 +48,7 @@ export class UpdaterService {
         this.autoCheck = autoCheck !== false
         if (this.isSupported && this.autoCheck) {
             setTimeout(() => void this.checkInBackground(), STARTUP_CHECK_DELAY_MS)
+            setInterval(() => void this.checkPeriodically(), PERIODIC_CHECK_INTERVAL_MS)
         }
     }
 
@@ -58,6 +62,17 @@ export class UpdaterService {
         const skipped = await this.preferences.get<string | undefined>(SKIPPED_VERSION_PREF)
         if (skipped === result.update.version) return
         await this.showUpdateDialog()
+    }
+
+    /**
+     * Re-check while the app stays open. Never opens the dialog — interrupting mid-edit is wrong —
+     * the header update button appears instead. Honours the toggle live, since it can change after
+     * startup. Failures (offline is normal) are swallowed; main keeps the state, `check()` is a
+     * no-op once a download has started.
+     */
+    private async checkPeriodically(): Promise<void> {
+        if (!this.autoCheck) return
+        await window.updater.check().catch(() => undefined)
     }
 
     /** User-initiated check (Settings). Ignores a skipped version — asking explicitly means they want to know. */

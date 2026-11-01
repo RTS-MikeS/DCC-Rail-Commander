@@ -86,6 +86,17 @@ describe('AppUpdaterService', () => {
         expect(service.installing).toBe(false)
     })
 
+    it('keeps reporting available during a re-check, so periodic checks never flicker the update button', async () => {
+        const service = new AppUpdaterService(fakeBackend())
+        await service.check()
+        const seen: UpdateState['status'][] = []
+        service.onStateChanged((s) => seen.push(s.status))
+
+        await service.check()
+
+        expect(seen).toEqual(['available'])
+    })
+
     it('reports an available update with its release notes, broadcasting each state', async () => {
         const service = new AppUpdaterService(fakeBackend())
         const seen: UpdateState['status'][] = []

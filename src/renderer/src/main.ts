@@ -30,6 +30,7 @@ import { ConfigEditorState } from './models/config-editor-state'
 import { MonacoEditorCustomElement } from './components/monaco-editor'
 import { VpinPickerCustomElement } from './components/vpin-picker'
 import { FolderTreePanelCustomElement } from './components/folder-tree-panel'
+import { UpdateButtonCustomElement } from './components/update-button'
 import { AliasPickerCustomElement } from './components/alias-picker'
 import { RosterEditorCustomElement } from './components/visual-editors/roster-editor'
 import { TurnoutEditorCustomElement } from './components/visual-editors/turnout-editor'
@@ -104,6 +105,7 @@ new Aurelia()
         MonacoEditorCustomElement,
         VpinPickerCustomElement,
         FolderTreePanelCustomElement,
+        UpdateButtonCustomElement,
         AliasPickerCustomElement,
         RosterEditorCustomElement,
         TurnoutEditorCustomElement,

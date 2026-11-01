@@ -46,9 +46,9 @@ Shows the version of DCC Rail Commander you're running, and whether a newer one 
 | Setting | Effect |
 |---|---|
 | Check for updates | Checks GitHub for a newer release right now. If there is one, the update dialog opens with its release notes — even if you previously chose **Skip this version**. |
-| Check automatically | Checks once, a few seconds after the app starts. Turn off to keep the app from contacting GitHub except when you press **Check for updates** (fetching DCC-EX firmware still needs network access). |
+| Check automatically | Checks a few seconds after the app starts, then every 4 hours while it stays open. Only the startup check opens the update dialog; later checks just show the **Update** button. Turn off to keep the app from contacting GitHub except when you press **Check for updates** (fetching DCC-EX firmware still needs network access). |
 
-When an update is found, the update dialog shows the release notes for every version newer than the one
+When an update is found, an **Update** button appears in the header (the home screen's top-right corner, or the workspace toolbar next to Settings). It reads **Update available**, then **Updating 42%** while downloading, then **Restart to update**; click it to open the update dialog. The dialog shows the release notes for every version newer than the one
 you have, newest first. From there:
 
 - **Download update** downloads it in the background. You can close the dialog with **Later** while it downloads.

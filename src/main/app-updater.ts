@@ -122,7 +122,9 @@ export class AppUpdaterService {
             return Promise.resolve(this.state)
         }
         this.inFlightCheck ??= (async () => {
-            this.setState({ status: 'checking' })
+            // A re-check while an update is already on offer keeps `available`, so the header update
+            // button doesn't flicker out and back in on every periodic check.
+            if (this.state.status !== 'available') this.setState({ status: 'checking' })
             try {
                 const info = await backend.check()
                 this.setState(info ? { status: 'available', update: toAvailableUpdate(info) } : { status: 'not-available' })
