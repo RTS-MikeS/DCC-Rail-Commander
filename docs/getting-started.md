@@ -6,7 +6,7 @@ Download the installer for your platform from the [Releases page](https://github
 
 | Platform | File |
 |---|---|
-| Windows 10/11 | NSIS installer (`.exe`) |
+| Windows 10/11 | NSIS installer (`.exe`) — pick the **x64** build for most PCs, or **arm64** for Windows-on-ARM devices |
 | Linux | AppImage or `.deb` |
 | macOS | `.dmg` |
 

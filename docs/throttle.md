@@ -43,7 +43,7 @@ Each throttle card has:
 For a loco matched to a roster entry, the function grid shows only the functions your roster actually defines
 for it, labeled by name (e.g. "Light", "Horn") — a function slot the roster marks as unused still takes its
 place in the grid but is disabled, since it still occupies a real F-number on the decoder. For a loco added by
-raw address (no roster match), all 29 functions (F0–F28) are shown with generic "Fn" labels so you can still
+raw address (no roster match), all 69 functions (F0–F68) are shown with generic "Fn" labels so you can still
 test the loco.
 
 Functions defined as momentary in the roster act as press-and-hold — the function is on only while the button

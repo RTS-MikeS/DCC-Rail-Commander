@@ -36,8 +36,8 @@ Click **+**. A new entry is created with the next unused DCC address (or `1` if 
 
 ## Functions
 
-Each locomotive (that doesn't belong to a shared function list) has its own list of up to 29 functions
-(F0–F28). For each function you can set:
+Each locomotive (that doesn't belong to a shared function list) has its own list of up to 69 functions
+(F0–F68). For each function you can set:
 
 - **Name** — left blank and disabled when **No Fn** is checked.
 - **Momentary** — the function is active only while held, not toggled on/off.
