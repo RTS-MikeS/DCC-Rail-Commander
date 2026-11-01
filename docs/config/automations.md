@@ -18,6 +18,11 @@ different for automations.
 
 ## Layout
 
+!!! tip "Organize with folders"
+    This editor's sidebar is a tree: group automations into folders and drag them around. See
+    [Folders and the tree](folders.md).
+
+
 The left sidebar lists every automation by description (or `Automation <id>` if it has none); an amber dot
 marks any entry with no alias set while **Strict aliases** is enabled (see [Aliases](#aliases) below). Click a
 row to load it, or the **×** on a row to remove it. Click **+** to add a new automation.

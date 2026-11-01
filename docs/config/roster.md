@@ -16,6 +16,10 @@ load it into the detail panel on the right.
 
 Right-click a locomotive row for **Clone** or **Delete**; right-click a group row for **Rename Group**.
 
+Locomotives and groups can also be organized into **folders** (drag a `#define` group into a folder to move all of
+its locomotives together), and the search box above the tree filters by name, comment or DCC ID — see
+[Folders and the tree](folders.md#roster-specifics).
+
 ## Adding a locomotive
 
 Click **+**. A new entry is created with the next unused DCC address (or `1` if the roster is empty), named

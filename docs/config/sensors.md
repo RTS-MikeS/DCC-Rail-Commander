@@ -8,6 +8,11 @@ VPin needs no declaration to be usable in `ONSENSOR`/`AT`/`IF` — see Raw view 
 
 ## Visual and Raw views
 
+!!! tip "Organize with folders"
+    This editor's sidebar is a tree: group sensors into folders and drag them around. See
+    [Folders and the tree](folders.md).
+
+
 Like other config files, Sensors has a **Visual** tab (the row list described below) and a **Raw** tab — a
 Monaco text editor showing `mySensors.h` exactly as it will be written to disk. Edits made in either tab sync to
 the other.

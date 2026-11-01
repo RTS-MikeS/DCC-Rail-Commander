@@ -10,6 +10,11 @@ edited as one unit.
 
 ## Layout
 
+!!! tip "Organize with folders"
+    This editor's sidebar is a tree: group event handlers into folders and drag them around. See
+    [Folders and the tree](folders.md).
+
+
 The left sidebar has an **Add** control at the top — a dropdown of handler types, grouped by category, next
 to a **+** button — above the list of handlers already in your file. Each row shows a friendly label built
 from the handler type and its arguments (for example "On sensor changed (200)"). Click a row to load it, or

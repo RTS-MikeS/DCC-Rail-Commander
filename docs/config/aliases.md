@@ -9,8 +9,8 @@ scripts can refer to it by name instead of a raw numeric ID.
 ## Layout
 
 Unlike Routes, Sequences, Automations, and Event Handlers, the Aliases editor has no Blocks canvas — the
-**Visual** tab is a form: an **Add Alias** row at the top, and the existing aliases below it, grouped by
-target type (Roster, Turnout, Sensor, Route, Sequence, Automation). Within each group they're sorted
+**Visual** tab is a form: an **Add Alias** row at the top, and the existing aliases below it in a tree you can
+organize into [folders](folders.md), grouped by target type (Roster, Turnout, Sensor, Route, Sequence, Automation). Within each group they're sorted
 alphabetically by name by default, or numerically by ID if you change **Alias sort order** in
 [Preferences](../preferences.md). Each group header shows the group's name and entry count.
 
