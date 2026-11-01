@@ -90,4 +90,48 @@ test.describe('Tree grouping', () => {
         expect(ids).toHaveLength(2)
         expect(new Set(ids).size).toBe(2)
     })
+    test('Drag and drop: an entry drags onto a folder (highlighting it on the way), then back to the top level', async ({ workspacePage: page }) => {
+        await openEditor(page, 'Routes')
+        const before = await page.getByTestId('tree-item').count()
+        await page.locator('routes-editor button[title="Add new route"]').click()
+        await expect(page.getByTestId('tree-item')).toHaveCount(before + 1)
+        await createFolder(page, 'Yard')
+        const folder = page.getByTestId('folder-row').filter({ hasText: 'Yard' })
+        await expect(folder).toContainText('0')
+
+        // Folders show an icon.
+        await expect(folder.getByTestId('folder-icon')).toBeVisible()
+
+        // Drag the new route (last leaf) onto the folder.
+        const leaf = page.getByTestId('tree-item').last()
+        await leaf.dragTo(folder)
+        await expect(folder).toContainText('1')
+        expect(await rawText(page)).toContain('// @tree: Yard')
+        await page.getByRole('button', { name: 'Visual' }).first().click()
+
+        // Drag it back out onto blank space in the panel: top level again.
+        const moved = page.getByTestId('tree-item').first() // folders sort first, so this is the one inside Yard
+        const nav = page.getByTestId('folder-tree-panel').locator('nav')
+        const box = (await nav.boundingBox())!
+        await moved.dragTo(nav, { targetPosition: { x: 20, y: box.height - 4 } })
+        await expect(folder).toContainText('0')
+        expect(await rawText(page)).not.toContain('// @tree: Yard')
+    })
+
+    test('Drag and drop: a drag cancelled outside any folder moves nothing and leaves no highlight stuck', async ({ workspacePage: page }) => {
+        await openEditor(page, 'Routes')
+        await page.locator('routes-editor button[title="Add new route"]').click()
+        await createFolder(page, 'Yard')
+        const folder = page.getByTestId('folder-row').filter({ hasText: 'Yard' })
+        const leaf = page.getByTestId('tree-item').last()
+
+        // Hover over the folder mid-drag: it is highlighted; then release elsewhere.
+        await leaf.hover()
+        await page.mouse.down()
+        await folder.hover()
+        await page.mouse.move(5, 5)
+        await page.mouse.up()
+        await expect(folder).toContainText('0')
+        await expect(folder).not.toHaveClass(/outline-blue-500/)
+    })
 })

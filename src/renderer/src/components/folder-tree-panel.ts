@@ -144,14 +144,34 @@ export class FolderTreePanelCustomElement {
     }
 
     // ── Drag & drop (entries onto folders) ────────────────────────────────────
+    /** Folder path currently highlighted as the drop destination ('' = top level), or null. */
+    dropTarget: string | null = null
+
     dragStart(event: DragEvent, row: TreeRow): void {
         if (row.kind !== 'item') return
         this._dragIndex = row.index
         event.dataTransfer?.setData('text/plain', String(row.index))
+        if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
     }
 
-    dragOver(event: DragEvent): void {
-        if (this._dragIndex >= 0) event.preventDefault()
+    dragOver(event: DragEvent, folder: string): void {
+        if (this._dragIndex < 0) return
+        event.preventDefault()
+        // Only the innermost row handles it, so the nav's top-level highlight doesn't override a folder's.
+        event.stopPropagation()
+        if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+        this.dropTarget = folder
+    }
+
+    dragLeave(event: DragEvent): void {
+        const nav = event.currentTarget as HTMLElement
+        if (!nav.contains(event.relatedTarget as Node | null)) this.dropTarget = null
+    }
+
+    /** Fires on the dragged row even when the drop lands outside any target (Esc, outside the panel). */
+    dragEnd(): void {
+        this._dragIndex = -1
+        this.dropTarget = null
     }
 
     drop(event: DragEvent, folder: string): void {
@@ -159,6 +179,7 @@ export class FolderTreePanelCustomElement {
         event.preventDefault()
         const index = this._dragIndex
         this._dragIndex = -1
+        this.dropTarget = null
         if (index < 0) return
         this.onMove(index, folder)
         this.selectItem(index)

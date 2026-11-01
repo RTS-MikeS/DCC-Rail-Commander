@@ -17,22 +17,24 @@
                     class="w-6 h-6 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg flex items-center justify-center leading-none transition-colors">+</button>
             </span>
         </div>
-        <nav class="flex-1 overflow-y-auto py-1" aria-label.bind="label" dragover.trigger="dragOver($event)" drop.trigger="drop($event, '')">
+        <nav class="flex-1 overflow-y-auto py-1" aria-label.bind="label" dragover.trigger="dragOver($event, '')" dragleave.trigger="dragLeave($event)" drop.trigger="drop($event, '')"
+            class.bind="dropTarget === '' ? 'outline outline-1 -outline-offset-1 outline-blue-500' : ''">
             <div if.bind="rows.length === 0" class="px-3 py-6 text-xs text-gray-500 text-center">Nothing here yet.</div>
             <template repeat.for="row of rows">
                 <div if.bind="row.kind === 'folder'" data-testid="folder-row" role="treeitem"
-                    dragover.trigger="dragOver($event)" drop.trigger="drop($event, row.path)"
+                    dragover.trigger="dragOver($event, row.path)" drop.trigger="drop($event, row.path)"
                     click.trigger="selectFolder(row.path)"
                     css="padding-left: ${8 + row.depth * 14}px"
                     class="flex items-center gap-1.5 pr-3 py-1.5 text-sm cursor-pointer select-none transition-colors"
-                    class.bind="isSelected(row) ? 'bg-blue-600/15 text-gray-900 dark:text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-white/5'">
+                    class.bind="dropTarget === row.path ? 'bg-blue-600/30 outline outline-1 outline-blue-500' : (isSelected(row) ? 'bg-blue-600/15 text-gray-900 dark:text-white font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200/70 dark:hover:bg-white/5')">
                     <span click.trigger="toggle(row.path) & self" class="w-4 text-center text-xs text-gray-500">${row.open ? '▾' : '▸'}</span>
+                    <span data-testid="folder-icon" class="shrink-0 text-sm" aria-hidden="true">${row.open ? '&#128194;' : '&#128193;'}</span>
                     <span class="truncate flex-1">${row.label}</span>
                     <span class="text-xs text-gray-500">${row.count}</span>
                 </div>
                 <a if.bind="row.kind === 'item'" data-testid="tree-item" role="treeitem" draggable="true"
-                    dragstart.trigger="dragStart($event, row)"
-                    dragover.trigger="dragOver($event)" drop.trigger="drop($event, row.path)"
+                    dragstart.trigger="dragStart($event, row)" dragend.trigger="dragEnd()"
+                    dragover.trigger="dragOver($event, row.path)" drop.trigger="drop($event, row.path)"
                     click.trigger="selectItem(row.index)"
                     css="padding-left: ${8 + row.depth * 14}px"
                     class="flex items-center gap-1.5 pr-2 py-1.5 text-sm cursor-pointer select-none transition-colors"
