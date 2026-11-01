@@ -6,7 +6,9 @@ import tailwindcss from '@tailwindcss/vite'
 import monacoEditorPluginImport, { type IMonacoEditorOpts } from 'vite-plugin-monaco-editor'
 import type { Plugin } from 'vite'
 
-const { version: appVersion } = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'))
+// Read rather than `import`ed: tsconfig.node.json is a composite project and won't accept
+// package.json as a source file.
+const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')) as { version: string }
 
 // Vite's CJS→ESM interop double-wraps this plugin under `moduleResolution:
 // bundler` — the default import resolves to `{ default: actualPluginFn }`
@@ -41,6 +43,11 @@ export default defineConfig({
     // ── Renderer (Aurelia 2 + Vite) ───────────────────────────────────────────
     renderer: {
         root: resolve(__dirname, 'src/renderer'),
+        // package.json's `version` is the single source of truth for the app version (RELEASE.md
+        // step 1) — inject it rather than letting a hand-maintained copy drift out of date.
+        define: {
+            __APP_VERSION__: JSON.stringify(pkg.version),
+        },
         plugins: [
             tailwindcss(),
             aurelia({
@@ -69,9 +76,6 @@ export default defineConfig({
                 'aurelia': resolve(__dirname, 'node_modules', 'aurelia'),
                 '@aurelia': resolve(__dirname, 'node_modules', '@aurelia'),
             },
-        },
-        define: {
-            __APP_VERSION__: JSON.stringify(appVersion),
         },
         build: {
             rollupOptions: {

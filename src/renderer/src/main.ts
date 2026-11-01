@@ -20,6 +20,7 @@ import { ThemeService } from './services/theme.service'
 import { BlocklySoundsService } from './services/blockly-sounds.service'
 import { EditorDefaultViewService } from './services/editor-default-view.service'
 import { AliasSortOrderService } from './services/alias-sort-order.service'
+import { UpdaterService } from './services/updater.service'
 
 // State
 import { InstallerState } from './models/installer-state'
@@ -96,6 +97,7 @@ new Aurelia()
         Registration.singleton(BlocklySoundsService, BlocklySoundsService),
         Registration.singleton(EditorDefaultViewService, EditorDefaultViewService),
         Registration.singleton(AliasSortOrderService, AliasSortOrderService),
+        Registration.singleton(UpdaterService, UpdaterService),
         Registration.singleton(InstallerState, InstallerState),
         Registration.singleton(ConfigEditorState, ConfigEditorState),
         // Config editor custom elements

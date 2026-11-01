@@ -9,7 +9,7 @@ export const IInstallerState = DI.createInterface<InstallerState>('IInstallerSta
  * Registered as a singleton in the DI container so all views share it.
  */
 export class InstallerState {
-    /** App version, injected from package.json at build time (see electron.vite.config.ts) */
+    /** App version — package.json's `version`, injected at build time. Bump it there, never here. */
     readonly appVersion = __APP_VERSION__
 
     /** Bundled PlatformIO build toolchain unpacked and ready */
