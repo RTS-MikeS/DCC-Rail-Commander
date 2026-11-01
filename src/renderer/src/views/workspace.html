@@ -201,6 +201,9 @@
             Monitor
         </button>
 
+        <!-- Update — only rendered while an app update is available/downloading/ready -->
+        <update-button></update-button>
+
         <!-- Settings — opens the app-wide preferences dialog (auto-connect, Monitor, verbose compile, firmware version) -->
         <button click.trigger="openSettings()" data-testid="settings-button" title="Settings" aria-label="Settings"
             class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-900/5 dark:bg-white/5 hover:bg-gray-900/10 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">

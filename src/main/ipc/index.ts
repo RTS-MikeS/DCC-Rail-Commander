@@ -7,6 +7,7 @@ import { registerPreferencesIpcHandlers } from './preferences-ipc'
 import { registerConfigIpcHandlers } from './config-ipc'
 import { registerThemeIpcHandlers } from './theme-ipc'
 import { registerLocalHistoryIpcHandlers } from './local-history-ipc'
+import { registerUpdaterIpcHandlers } from './updater-ipc'
 import type { UsbManager } from '../usb-manager'
 import type { PythonRunner } from '../python-runner'
 import type { PlatformIoService } from '../platformio'
@@ -14,6 +15,7 @@ import type { GitService } from '../git-client'
 import type { FileService } from '../file-manager'
 import type { PreferencesService } from '../preferences'
 import type { LocalHistoryService } from '../local-history'
+import type { AppUpdaterService } from '../app-updater'
 
 export interface IpcServices {
     usbManager: UsbManager
@@ -23,6 +25,7 @@ export interface IpcServices {
     fileService: FileService
     preferencesService: PreferencesService
     localHistoryService: LocalHistoryService
+    appUpdater: AppUpdaterService
 }
 
 /**
@@ -39,4 +42,5 @@ export function registerAllIpcHandlers(services: IpcServices): void {
     registerConfigIpcHandlers()
     registerThemeIpcHandlers()
     registerLocalHistoryIpcHandlers(services.localHistoryService)
+    registerUpdaterIpcHandlers(services.appUpdater)
 }
