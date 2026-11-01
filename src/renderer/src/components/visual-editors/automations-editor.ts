@@ -1,4 +1,5 @@
 import { queueTask, resolve } from 'aurelia'
+import { loadTreeWidth, saveTreeWidth } from '../../utils/tree-width'
 import { IDialogService } from '@aurelia/dialog'
 import { confirmAction } from '../../utils/confirm-action'
 import { Splitter } from '@syncfusion/ej2-layouts'
@@ -41,6 +42,35 @@ export class AutomationsEditorCustomElement {
     private rowTab: Record<number, RowTab> = {}
 
     selectedId: number | null = null
+
+    // ── Folders (logical grouping only — see folder-tree.ts) ──────────────────
+    /** Folder selected in the tree ('' = none); new automations are created inside it. */
+    selectedFolder = ''
+
+    /** Index into state.automations of the selected entry — the tree highlights this leaf. */
+    get selectedTreeIndex(): number {
+        return this.selectedId === null ? -1 : this.state.automations.findIndex((e) => e.id === this.selectedId)
+    }
+
+    itemLabel = (item: AutomationEntry): string => this.getDisplayName(item)
+    itemWarn = (item: AutomationEntry): boolean => this.state.automationIdsNeedingAlias.has(item.id)
+    addFromTree = (): void => this.addAutomation()
+    removeFromTree = (index: number, event: Event): void => { void this.removeAutomation(index, event) }
+    selectFromTree = (index: number): void => {
+        const entry = this.state.automations[index]
+        if (entry) this.selectEntry(entry)
+        this.selectedFolder = ''
+    }
+    addFolder = (path: string): boolean => this.state.addFolderTo('automations', path)
+    renameFolder = (from: string, to: string): boolean => this.state.renameFolderIn('automations', from, to)
+    removeFolder = (path: string): void => this.state.deleteFolderFrom('automations', path)
+    moveToFolder = (index: number, folder: string): void => this.state.moveToFolder('automations', index, folder)
+
+    /** Folder a newly added entry lands in: the selected folder, else beside the selected entry. */
+    private _newEntryFolder(): string {
+        if (this.selectedFolder) return this.selectedFolder
+        return this.state.automations.find((e) => e.id === this.selectedId)?.folder ?? ''
+    }
 
     get defined(): DefinedObjects {
         return {
@@ -202,10 +232,10 @@ export class AutomationsEditorCustomElement {
     }
 
     private _loadSidebarWidth(): string {
-        try { return localStorage.getItem('automations-editor-sidebar-width') ?? '256px' } catch { return '256px' }
+        return `${loadTreeWidth()}px`
     }
     private _saveSidebarWidth(size: string): void {
-        try { localStorage.setItem('automations-editor-sidebar-width', size) } catch { /* ignore */ }
+        saveTreeWidth(parseInt(size, 10))
     }
 
     setTab(t: 'visual' | 'raw') {
@@ -239,7 +269,7 @@ export class AutomationsEditorCustomElement {
     addAutomation() {
         this.rowRawEditor?.flush()
         const nextId = this.state.nextSequenceId
-        this.state.automations = [...this.state.automations, { id: nextId, description: 'New Automation', body: '' }]
+        this.state.automations = [...this.state.automations, { id: nextId, description: 'New Automation', body: '', ...(this._newEntryFolder() ? { folder: this._newEntryFolder() } : {}) }]
         this.state.syncAll()
         this.selectedId = nextId
         this.blockCanvas?.reload('')

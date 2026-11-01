@@ -160,7 +160,7 @@ test.describe('Roster Editor', () => {
         // Remove Thomas (first entry) via context menu → Delete
         const thomasRow = page.locator('#roster-treeview li').filter({ hasText: 'Thomas' }).first()
         await thomasRow.locator('.e-fullrow').click({ button: 'right' })
-        await page.locator('.e-contextmenu li').filter({ hasText: 'Delete' }).click()
+        await page.locator('.e-contextmenu li').filter({ hasText: /^Delete$/ }).click()
 
         // ConfirmDialog appears as an Aurelia dialog overlay — click "Delete".
         // The dialog handler on the page fixture auto-accepts window.confirm() fallback.
@@ -403,5 +403,198 @@ test.describe('Roster Editor', () => {
         await switchToVisual(page)
         await page.waitForTimeout(500)
         await expect(page.locator('.e-toast-container .e-toast')).not.toBeVisible()
+    })
+    // ── Folders: a layer above the #define groups, stored as // @tree: comments ──
+
+    async function createRosterFolder(page: import('@playwright/test').Page, name: string) {
+        await page.getByTestId('new-folder').click()
+        const dialog = page.locator('[data-testid="text-input-dialog"]')
+        await dialog.waitFor({ state: 'visible', timeout: 5_000 })
+        await dialog.getByLabel('Folder name').fill(name)
+        await dialog.getByRole('button', { name: 'Create' }).click()
+        await expect(page.locator('#roster-treeview li').filter({ hasText: name }).first()).toBeVisible()
+    }
+
+    test('a loco moved into a folder is tagged with // @tree: above its untouched ROSTER line', async ({ workspacePage: page }) => {
+        await openRosterEditor(page)
+        await createRosterFolder(page, 'Steam')
+
+        await page.locator('#roster-treeview li').filter({ hasText: 'Percy' }).first().locator('.e-fullrow').click()
+        await page.getByTestId('roster-folder').selectOption('Steam')
+
+        await switchToRaw(page)
+        const content = await getMonacoContent(page)
+        expect(content).toContain('// @tree: Steam')
+        expect(content).toContain('ROSTER(5, "Percy", "LIGHT/HORN")')
+        expect(content).toContain('ROSTER(3, "Thomas", "LIGHT/HORN/*WHISTLE/BELL")')
+        expect(content.indexOf('// @tree: Steam')).toBeLessThan(content.indexOf('ROSTER(5, "Percy"'))
+        expect(content.indexOf('// @tree: Steam')).toBeGreaterThan(content.indexOf('ROSTER(3, "Thomas"'))
+    })
+
+    test('a #define group nests inside the folder that holds its locos, with the macro untouched', async ({ rosterGroupedPage: page }) => {
+        await openRosterEditor(page)
+        await switchToRaw(page)
+        await setMonacoContent(page, [
+            '#define STEAM_F "LIGHT/HORN/*WHISTLE/BELL" // friendlyName: "Steam Engines"',
+            '',
+            '// @tree: Yard',
+            'ROSTER(3, "Thomas", STEAM_F)',
+            '// @tree: Yard',
+            'ROSTER(5, "Percy", STEAM_F)',
+            'ROSTER(6, "Gordon", "LIGHT/HORN")',
+        ].join('\n'))
+        await switchToVisual(page)
+
+        const tree = page.locator('#roster-treeview')
+        const folder = tree.locator('li').filter({ hasText: 'Yard' }).first()
+        await expect(folder).toBeVisible()
+        // The group is a child of the folder, not a top-level node.
+        await expect(folder.locator('li').filter({ hasText: 'Steam Engines' }).first()).toBeVisible()
+        await expect(folder.locator('li').filter({ hasText: 'Thomas' }).first()).toBeVisible()
+        // Gordon has no folder and no #define: still at the top level, outside the folder.
+        await expect(folder.locator('li').filter({ hasText: 'Gordon' })).toHaveCount(0)
+        await expect(tree.locator('li').filter({ hasText: 'Gordon' }).first()).toBeVisible()
+
+        // Selecting the nested group still edits the shared macro.
+        await folder.locator('li').filter({ hasText: 'Steam Engines' }).first().locator('.e-fullrow').first().click()
+        await expect(page.getByText('#define', { exact: true }).first()).toBeVisible()
+
+        await switchToRaw(page)
+        const content = await getMonacoContent(page)
+        expect(content).toContain('#define STEAM_F "LIGHT/HORN/*WHISTLE/BELL"')
+        expect(content).toContain('ROSTER(3, "Thomas", STEAM_F)')
+        expect(content).toContain('ROSTER(5, "Percy", STEAM_F)')
+    })
+
+    test('a loco under a #define can be dragged into a sub folder', async ({ rosterGroupedPage: page }) => {
+        await openRosterEditor(page)
+        await switchToRaw(page)
+        await setMonacoContent(page, [
+            '// @tree-folder: Diesel/Amtrak',
+            '#define STEAM_F "LIGHT/HORN/*WHISTLE/BELL" // friendlyName: "Steam Engines"',
+            '',
+            'ROSTER(3, "Thomas", STEAM_F)',
+            'ROSTER(5, "Percy", STEAM_F)',
+        ].join('\n'))
+        await switchToVisual(page)
+
+        const tree = page.locator('#roster-treeview')
+        const sub = tree.locator('li').filter({ hasText: 'Amtrak' }).last().locator('.e-fullrow').first()
+        const thomas = tree.locator('li').filter({ hasText: 'Thomas' }).last().locator('.e-fullrow').first()
+        const from = await thomas.boundingBox()
+        const to = await sub.boundingBox()
+        await page.mouse.move(from!.x + 40, from!.y + from!.height / 2)
+        await page.mouse.down()
+        await page.mouse.move(to!.x + 40, to!.y + to!.height / 2, { steps: 12 })
+        await page.waitForTimeout(200)
+        await page.mouse.move(to!.x + 42, to!.y + to!.height / 2)
+        await page.mouse.up()
+
+        await switchToRaw(page)
+        const content = await getMonacoContent(page)
+        expect(content).toContain('// @tree: Diesel/Amtrak\nROSTER(3, "Thomas", STEAM_F)')
+        expect(content).toContain('#define STEAM_F "LIGHT/HORN/*WHISTLE/BELL"')
+    })
+
+    test('a loco under a #define can be moved to a sub folder with the Folder select', async ({ rosterGroupedPage: page }) => {
+        await openRosterEditor(page)
+        await switchToRaw(page)
+        await setMonacoContent(page, [
+            '// @tree-folder: Diesel/Amtrak',
+            '#define STEAM_F "LIGHT/HORN/*WHISTLE/BELL" // friendlyName: "Steam Engines"',
+            '',
+            '// @tree: Diesel',
+            'ROSTER(3, "Thomas", STEAM_F)',
+            'ROSTER(5, "Percy", STEAM_F)',
+        ].join('\n'))
+        await switchToVisual(page)
+        await page.locator('#roster-treeview li').filter({ hasText: 'Thomas' }).last().locator('.e-fullrow').first().click()
+        await page.getByTestId('roster-folder').selectOption('Diesel/Amtrak')
+        await switchToRaw(page)
+        expect(await getMonacoContent(page)).toContain('// @tree: Diesel/Amtrak\nROSTER(3, "Thomas", STEAM_F)')
+    })
+
+    test('a #define group can be dragged into a folder, moving all of its locos', async ({ rosterGroupedPage: page }) => {
+        await openRosterEditor(page)
+        await switchToRaw(page)
+        await setMonacoContent(page, [
+            '// @tree-folder: Diesel/Amtrak',
+            '#define STEAM_F "LIGHT/HORN/*WHISTLE/BELL" // friendlyName: "Steam Engines"',
+            '',
+            'ROSTER(3, "Thomas", STEAM_F)',
+            'ROSTER(5, "Percy", STEAM_F)',
+        ].join('\n'))
+        await switchToVisual(page)
+
+        const tree = page.locator('#roster-treeview')
+        const group = await tree.locator('li').filter({ hasText: 'Steam Engines' }).last().locator('.e-fullrow').first().boundingBox()
+        const sub = await tree.locator('li').filter({ hasText: 'Amtrak' }).last().locator('.e-fullrow').first().boundingBox()
+        await page.mouse.move(group!.x + 40, group!.y + group!.height / 2)
+        await page.mouse.down()
+        await page.mouse.move(sub!.x + 40, sub!.y + sub!.height / 2, { steps: 12 })
+        await page.waitForTimeout(200)
+        await page.mouse.move(sub!.x + 42, sub!.y + sub!.height / 2)
+        await page.mouse.up()
+
+        await switchToRaw(page)
+        const content = await getMonacoContent(page)
+        expect(content).toContain('// @tree: Diesel/Amtrak\nROSTER(3, "Thomas", STEAM_F)')
+        expect(content).toContain('// @tree: Diesel/Amtrak\nROSTER(5, "Percy", STEAM_F)')
+        expect(content).toContain('#define STEAM_F "LIGHT/HORN/*WHISTLE/BELL"')
+    })
+
+    test('each #define group in a real roster can be dragged into a sub folder', async ({ rosterGroupedPage: page }) => {
+        await openRosterEditor(page)
+        await switchToRaw(page)
+        await setMonacoContent(page, [
+            '// @tree-folder: Diesel/Amtrak',
+            '// @tree-folder: Diesel/CSX',
+            '#define LokSound5 "Lights/Bell/Airhorn/*Coupler"',
+            '#define AMTRAK_CHARGER_ALC_42 "Headlights/Bell/Horn/*Short Horn"',
+            '#define CSX_1869_F "Lights/Bell/Airhorn/*Short Horn" // friendlyName: "Tsunami 2 GE ES44AC"',
+            '',
+            '// @tree: Steam',
+            'ROSTER(1, "Thomas", "//Whistle/*Short Whistle")',
+            'ROSTER(6211, "CSX GP40 #6211", LokSound5)',
+            'ROSTER(301, "Amtrak Charger #301", AMTRAK_CHARGER_ALC_42)',
+            'ROSTER(305, "Amtrak Charger #305", AMTRAK_CHARGER_ALC_42)',
+            '// @tree: Diesel',
+            'ROSTER(53, "B&O E8/9 #53", "Lights")',
+            '// @tree: Steam',
+            'ROSTER(801, "CSX SD80MAC #801", LokSound5)',
+            'ROSTER(1869, "CSX #1869", CSX_1869_F)',
+            'ROSTER(1973, "CSX #1973", CSX_1869_F)',
+        ].join('\n'))
+        await switchToVisual(page)
+
+        await page.waitForTimeout(1000)
+        const tree = page.locator('#roster-treeview')
+        for (const label of ['LokSound5', 'Tsunami 2 GE ES44AC']) {
+            const group = await tree.locator('li').filter({ hasText: label }).last().locator('.e-fullrow').first().boundingBox()
+            const sub = await page.evaluate(() => {
+                const li = [...document.querySelectorAll('#roster-treeview li[data-uid]')].find(el => /^\S*CSX\d+ locos?$/.test((el.querySelector(':scope > .e-text-content')?.textContent ?? '').trim().replace(/\s+/g, ' ')))
+                const r = li!.querySelector(':scope > .e-fullrow')!.getBoundingClientRect()
+                return { x: r.x, y: r.y, height: r.height }
+            })
+            await page.mouse.move(group!.x + 40, group!.y + group!.height / 2)
+            await page.mouse.down()
+            await page.mouse.move(group!.x + 40, group!.y + group!.height / 2 - 4, { steps: 2 })
+            await page.mouse.move(sub!.x + 40, sub!.y + sub!.height / 2, { steps: 12 })
+            await page.waitForTimeout(200)
+            await page.mouse.move(sub!.x + 42, sub!.y + sub!.height / 2)
+            await page.mouse.up()
+            await page.waitForTimeout(500)
+        }
+
+        await switchToRaw(page)
+        const content = await getMonacoContent(page)
+        expect(content).toContain('// @tree: Diesel/CSX\nROSTER(6211')
+        expect(content).toContain('// @tree: Diesel/CSX\nROSTER(1869')
+    })
+
+    test('the roster tree shares its saved sidebar width with the other tree views', async ({ workspacePage: page }) => {
+        await page.evaluate(() => localStorage.setItem('tree-panel-width', '320'))
+        await openRosterEditor(page)
+        await expect.poll(async () => page.evaluate(() => (document.querySelector('#roster-splitter > div:first-child') as HTMLElement | null)?.offsetWidth ?? 0)).toBeGreaterThan(300)
     })
 })

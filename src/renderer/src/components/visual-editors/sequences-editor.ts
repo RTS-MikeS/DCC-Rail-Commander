@@ -1,4 +1,5 @@
 import { queueTask, resolve } from 'aurelia'
+import { loadTreeWidth, saveTreeWidth } from '../../utils/tree-width'
 import { IDialogService } from '@aurelia/dialog'
 import { confirmAction } from '../../utils/confirm-action'
 import { Splitter } from '@syncfusion/ej2-layouts'
@@ -34,6 +35,35 @@ export class SequencesEditorCustomElement {
     private rowTab: Record<number, RowTab> = {}
 
     selectedId: number | null = null
+
+    // ── Folders (logical grouping only — see folder-tree.ts) ──────────────────
+    /** Folder selected in the tree ('' = none); new sequences are created inside it. */
+    selectedFolder = ''
+
+    /** Index into state.sequences of the selected entry — the tree highlights this leaf. */
+    get selectedTreeIndex(): number {
+        return this.selectedId === null ? -1 : this.state.sequences.findIndex((e) => e.id === this.selectedId)
+    }
+
+    itemLabel = (item: SequenceEntry): string => this.getDisplayName(item)
+    itemWarn = (item: SequenceEntry): boolean => this.state.sequenceIdsNeedingAlias.has(item.id)
+    addFromTree = (): void => this.addSequence()
+    removeFromTree = (index: number, event: Event): void => { void this.removeSequence(index, event) }
+    selectFromTree = (index: number): void => {
+        const entry = this.state.sequences[index]
+        if (entry) this.selectEntry(entry)
+        this.selectedFolder = ''
+    }
+    addFolder = (path: string): boolean => this.state.addFolderTo('sequences', path)
+    renameFolder = (from: string, to: string): boolean => this.state.renameFolderIn('sequences', from, to)
+    removeFolder = (path: string): void => this.state.deleteFolderFrom('sequences', path)
+    moveToFolder = (index: number, folder: string): void => this.state.moveToFolder('sequences', index, folder)
+
+    /** Folder a newly added entry lands in: the selected folder, else beside the selected entry. */
+    private _newEntryFolder(): string {
+        if (this.selectedFolder) return this.selectedFolder
+        return this.state.sequences.find((e) => e.id === this.selectedId)?.folder ?? ''
+    }
 
     get defined(): DefinedObjects {
         return {
@@ -204,10 +234,10 @@ export class SequencesEditorCustomElement {
     }
 
     private _loadSidebarWidth(): string {
-        try { return localStorage.getItem('sequences-editor-sidebar-width') ?? '256px' } catch { return '256px' }
+        return `${loadTreeWidth()}px`
     }
     private _saveSidebarWidth(size: string): void {
-        try { localStorage.setItem('sequences-editor-sidebar-width', size) } catch { /* ignore */ }
+        saveTreeWidth(parseInt(size, 10))
     }
 
     setTab(t: 'visual' | 'raw') {
@@ -241,7 +271,7 @@ export class SequencesEditorCustomElement {
     addSequence() {
         this.rowRawEditor?.flush()
         const nextId = this.state.nextSequenceId
-        this.state.sequences = [...this.state.sequences, { id: nextId, description: 'New Sequence', body: '' }]
+        this.state.sequences = [...this.state.sequences, { id: nextId, description: 'New Sequence', body: '', ...(this._newEntryFolder() ? { folder: this._newEntryFolder() } : {}) }]
         this.state.syncAll()
         this.selectedId = nextId
         this.blockCanvas?.reload('')
