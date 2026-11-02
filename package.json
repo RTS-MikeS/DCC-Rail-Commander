@@ -1,7 +1,7 @@
 {
     "name": "dcc-rail-commander-electron",
     "version": "0.1.0-alpha.7",
-    "description": "DCC-Rail-Commander - Electron/Aurelia 2 frontend",
+    "description": "DCC-Rail-Commander - install, configure and manage firmware for DCC-EX CommandStations, IO Expanders and Turntables",
     "author": {
         "name": "DCC-EX",
         "email": "m.j.stankovich@gmail.com"

@@ -130,7 +130,10 @@ async function main() {
         // keeps each build to just its own installer, avoiding that extra ~600MB artifact.
         await run('pnpm', ['exec', 'electron-builder', '--win', '--x64', outputArg, publishArg])
         const x64ChannelFiles = await readChannelFiles(outDir)
-        await run('pnpm', ['exec', 'electron-builder', '--win', '--arm64', outputArg, publishArg])
+        // arm64 uses zip packaging: with 7z, the arm64 PE files get 7-Zip's ARM64 filter, which the NSIS
+        // installer's extractor doesn't support, so the installed app silently lacks its exe and DLLs.
+        // useZip is ignored while differential packages are on, hence differentialPackage=false (full downloads on update).
+        await run('pnpm', ['exec', 'electron-builder', '--win', '--arm64', '-c.nsis.useZip=true', '-c.nsis.differentialPackage=false', outputArg, publishArg])
         await mergeChannelFiles(outDir, x64ChannelFiles)
     } else {
         await run('pnpm', ['exec', 'electron-builder', outputArg, publishArg])
