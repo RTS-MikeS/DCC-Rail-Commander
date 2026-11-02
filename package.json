@@ -1,6 +1,6 @@
 {
     "name": "dcc-rail-commander-electron",
-    "version": "0.1.0-alpha.7",
+    "version": "0.1.0-alpha.8",
     "description": "DCC-Rail-Commander - install, configure and manage firmware for DCC-EX CommandStations, IO Expanders and Turntables",
     "author": {
         "name": "DCC-EX",
