@@ -91,7 +91,7 @@ const TURNOUT_FAMILY_COMPLETIONS: CompletionSnippet[] = [
         label: 'SERVO_TURNOUT',
         detail: 'SERVO_TURNOUT(id, pin, activeAngle, inactiveAngle, profile, "desc")',
         documentation: 'Define a servo-controlled turnout / point.',
-        insertText: 'SERVO_TURNOUT(${1:id}, ${2:pin}, ${3:400}, ${4:100}, ${5|Instant,Fast,Medium,Slow,Bounce|}, "${6:description}")',
+        insertText: 'SERVO_TURNOUT(${1:id}, ${2:pin}, ${3:400}, ${4:350}, ${5|Instant,Fast,Medium,Slow,Bounce|}, "${6:description}")',
         hover: {
             title: 'SERVO_TURNOUT Macro',
             description: 'Define a servo-controlled turnout or point.',

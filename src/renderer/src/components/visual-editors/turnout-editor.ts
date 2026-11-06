@@ -391,7 +391,7 @@ export class TurnoutEditorCustomElement {
             if (!(await this._ensureServoBoard())) return
             const pin = await this._pickPin(this._nextFreeVpin())
             if (pin === null) return
-            this.editBuffer ={ ...base, type: 'SERVO', pin, activeAngle: 400, inactiveAngle: 100, profile: 'Slow' }
+            this.editBuffer ={ ...base, type: 'SERVO', pin, activeAngle: 400, inactiveAngle: 350, profile: 'Slow' }
         } else if (type === 'DCC') {
             this.editBuffer = { ...base, type: 'DCC', addr: 0, subAddr: 0 }
         } else if (type === 'DCCL') {
@@ -429,7 +429,7 @@ export class TurnoutEditorCustomElement {
             if (!(await this._ensureServoBoard())) return
             const pin = await this._pickPin(this._nextFreeVpin())
             if (pin === null) return
-            newEntry ={ ...base, type: 'SERVO', pin, activeAngle: 400, inactiveAngle: 100, profile: 'Slow' }
+            newEntry ={ ...base, type: 'SERVO', pin, activeAngle: 400, inactiveAngle: 350, profile: 'Slow' }
         } else if (type === 'DCC') {
             newEntry = { ...base, type: 'DCC', addr: 0, subAddr: 0 }
         } else if (type === 'DCCL') {
