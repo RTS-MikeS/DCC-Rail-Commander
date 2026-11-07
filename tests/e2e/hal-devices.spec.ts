@@ -42,6 +42,7 @@ test.describe('Accessories — HAL Devices', () => {
         // 0x70 PCA9685 broadcast default per the RT_I2C_ISO_MUX manual).
         await page.locator('hal-devices-form select').first().selectOption({ label: 'RT I2C Isolated Multiplexer' })
         await page.locator('hal-devices-form').getByRole('button', { name: 'Add Board' }).click()
+        await page.getByTestId('hal-board-add-dialog').getByRole('button', { name: 'Create' }).click()
 
         const muxRow = page.locator('hal-devices-form [data-board-id="rt_i2c_iso_mux"]')
         await expect(muxRow).toBeVisible()
@@ -50,6 +51,7 @@ test.describe('Accessories — HAL Devices', () => {
         // Add an RT DCD-16 behind the multiplexer, channel 2.
         await page.locator('hal-devices-form select').first().selectOption({ label: 'RT DCD-16 Block Sensor' })
         await page.locator('hal-devices-form').getByRole('button', { name: 'Add Board' }).click()
+        await page.getByTestId('hal-board-add-dialog').getByRole('button', { name: 'Create' }).click()
 
         const sensorRow = page.locator('hal-devices-form [data-board-id="rt_dcd_16"]')
         await expect(sensorRow).toBeVisible()
@@ -76,6 +78,7 @@ test.describe('Accessories — HAL Devices', () => {
 async function addPca9685(page: import('@playwright/test').Page) {
     await page.locator('hal-devices-form select').first().selectOption({ label: 'PCA9685' })
     await page.locator('hal-devices-form').getByRole('button', { name: 'Add Board' }).click()
+    await page.getByTestId('hal-board-add-dialog').getByRole('button', { name: 'Create' }).click()
     const deviceRow = page.locator('hal-devices-form [data-board-id="pca9685_sh"]')
     await expect(deviceRow).toBeVisible()
     return deviceRow
@@ -183,5 +186,18 @@ test.describe('Accessories — VPin conflicts with consumers', () => {
 
         await page.locator('#turnout-treeview li.e-list-item').filter({ hasText: 'New Turnout' }).first().locator('.e-fullrow').first().click()
         await expect(pinSourceSelect).not.toHaveValue('Direct MCU pin')
+    })
+})
+
+test.describe('Accessories — scrolling', () => {
+    test('the board list scrolls when it is taller than the panel', async ({ csb1StackedPage }) => {
+        const page = csb1StackedPage
+        await openAccessoriesTab(page)
+        for (let i = 0; i < 8; i++) await addPca9685(page).catch(() => undefined)
+        const scroller = page.getByTestId('accessories-scroll')
+        const overflows = await scroller.evaluate(el => el.scrollHeight > el.clientHeight)
+        expect(overflows).toBe(true)
+        await scroller.evaluate(el => { el.scrollTop = el.scrollHeight })
+        expect(await scroller.evaluate(el => el.scrollTop)).toBeGreaterThan(0)
     })
 })

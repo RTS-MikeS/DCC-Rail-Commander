@@ -134,15 +134,25 @@ export class HalDevicesFormCustomElement {
         )
     }
 
-    addDevice(): void {
+    async addDevice(): Promise<void> {
         const board = getHalBoard(this.boardToAdd)
         if (!board) return
+        const { dialog } = await this.dialogService.open({
+            component: () =>
+                import('../dialogs/hal-board-add-dialog').then(m => m.HalBoardAddDialog).catch(() => null),
+            model: { boardId: board.id, existing: this.devices },
+        })
+        const result = await dialog.closed
+        if (result.status !== 'ok' || !result.value) return
+        const choice = result.value as { label: string; address: number; parentMuxInstanceId?: string; muxChannel?: number }
         const device: HalDeviceInstance = {
             instanceId: `hal-${Math.random().toString(36).slice(2, 10)}`,
             boardId: board.id,
-            label: board.label,
-            address: board.defaultAddress,
+            label: choice.label,
+            address: choice.address,
             vpinStart: board.pinCount > 0 ? this.editorState.nextFreeVpin : null,
+            parentMuxInstanceId: choice.parentMuxInstanceId,
+            muxChannel: choice.muxChannel,
         }
         this.devices = board.isMultiplexer ? [device, ...this.devices] : [...this.devices, device]
         this.onFieldChange()

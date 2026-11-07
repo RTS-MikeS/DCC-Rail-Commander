@@ -19,7 +19,11 @@
         <!-- ── Visual tab ────────────────────────────────────────────────────── -->
         <div if.bind="activeTab === 'visual'" class="flex flex-col flex-1 min-h-0 overflow-hidden">
 
-            <hal-devices-form if.bind="productId === 'ex_commandstation'"></hal-devices-form>
+            <!-- hal-devices-form's host is an inline custom element with no height of its own, so the
+                 scrolling has to live on this wrapper or a long board list is simply clipped. -->
+            <div if.bind="productId === 'ex_commandstation'" class="flex-1 min-h-0 overflow-y-auto" data-testid="accessories-scroll">
+                <hal-devices-form></hal-devices-form>
+            </div>
 
             <!-- No visual editor for this product -->
             <div if.bind="!hasVisualEditor"

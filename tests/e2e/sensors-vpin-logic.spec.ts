@@ -101,6 +101,7 @@ async function openAccessoriesTab(page: import('@playwright/test').Page) {
 async function addPca9685(page: import('@playwright/test').Page) {
     await page.locator('hal-devices-form select').first().selectOption({ label: 'PCA9685' })
     await page.locator('hal-devices-form').getByRole('button', { name: 'Add Board' }).click()
+    await page.getByTestId('hal-board-add-dialog').getByRole('button', { name: 'Create' }).click()
     const deviceRow = page.locator('hal-devices-form [data-board-id="pca9685_sh"]')
     await expect(deviceRow).toBeVisible()
     return deviceRow

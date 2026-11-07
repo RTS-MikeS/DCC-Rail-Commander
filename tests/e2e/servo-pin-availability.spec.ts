@@ -19,6 +19,7 @@ async function addPca9685Board(page: Page) {
     const rowsBefore = await hal(page).locator('[data-board-id="pca9685_sh"]').count()
     await hal(page).locator('select').first().selectOption({ label: 'PCA9685' })
     await hal(page).getByRole('button', { name: 'Add Board' }).click()
+    await page.getByTestId('hal-board-add-dialog').getByRole('button', { name: 'Create' }).click()
     await expect(hal(page).locator('[data-board-id="pca9685_sh"]')).toHaveCount(rowsBefore + 1)
 }
 
