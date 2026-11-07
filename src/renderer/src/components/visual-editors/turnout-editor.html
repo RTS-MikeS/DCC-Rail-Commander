@@ -414,6 +414,21 @@
                                 </div>
                                 <p class="text-[11px] text-gray-500">No hardware — this turnout is driven entirely by
                                     ONCLOSE/ONTHROW event handlers elsewhere (myEvents.h).</p>
+                                <div class="flex flex-col gap-1.5">
+                                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Test</label>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" data-testid="virtual-test-close" disabled.bind="!canTestVirtual"
+                                            click.trigger="testVirtualTurnout('close')"
+                                            class="px-2.5 py-1 text-xs font-medium rounded bg-green-600 hover:bg-green-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Close</button>
+                                        <button type="button" data-testid="virtual-test-throw" disabled.bind="!canTestVirtual"
+                                            click.trigger="testVirtualTurnout('throw')"
+                                            class="px-2.5 py-1 text-xs font-medium rounded bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Throw</button>
+                                    </div>
+                                    <p class="text-[11px] text-amber-600 dark:text-amber-400">Requires this turnout to be deployed to the CommandStation first (upload the configuration), otherwise the CS doesn't know about it.</p>
+                                    <p if.bind="!canTestVirtual" class="text-[11px] text-gray-500">Connect a device to trigger this turnout.</p>
+                                    <p if.bind="virtualTestStatus" data-testid="virtual-test-status"
+                                        class="text-[11px] ${virtualTestStatus.ok ? 'text-gray-500' : 'text-red-600 dark:text-red-400'}">${virtualTestStatus.message}</p>
+                                </div>
                                 <div if.bind="virtualEvents" data-testid="virtual-events-hint"
                                     class="flex items-center gap-2 text-[11px] rounded-md border px-2.5 py-1.5 ${virtualEvents.childCount === 0 || virtualEvents.missing.length === 0 ? 'border-gray-200 dark:border-white/10 text-gray-500' : 'border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-400'}">
                                     <span if.bind="virtualEvents.childCount === 0">Turnouts placed under this one in the tree are added to its ONCLOSE/ONTHROW events automatically.</span>

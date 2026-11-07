@@ -12,6 +12,7 @@ import { getBoardSources, isCsb1Project } from '../../utils/vpin-picker-logic'
 import { virtualEventStatus, type VirtualEventStatus } from '../../utils/virtual-turnout-events'
 import { allFolderPaths, buildTurnoutTree, isValidFolderName, locationOf, wouldCreateCycle, type TurnoutLocation, type TurnoutTreeNode } from '../../utils/turnout-tree'
 import { ToastService } from '../../services/toast.service'
+import { UsbService } from '../../services/usb.service'
 import { EditorDefaultViewService } from '../../services/editor-default-view.service'
 import type { ServoCalibrationResult } from '../dialogs/servo-calibration-dialog'
 import type { TurnoutCloneResult } from '../dialogs/turnout-clone-dialog'
@@ -43,6 +44,7 @@ export class TurnoutEditorCustomElement {
     readonly state = resolve(ConfigEditorState)
     private readonly installerState = resolve(InstallerState)
     private readonly dialogService = resolve(IDialogService)
+    private readonly usb = resolve(UsbService)
     private readonly toastService = resolve(ToastService)
     private readonly observerLocator = resolve(IObserverLocator)
     private readonly editorDefaultView = resolve(EditorDefaultViewService)
@@ -1164,6 +1166,43 @@ export class TurnoutEditorCustomElement {
         const updates = result.value as ServoCalibrationResult
         this.editBuffer = { ...this.editBuffer, ...updates }
         this.commitBuffer()
+    }
+
+    /** Status line under the virtual turnout's Close/Throw test buttons. */
+    virtualTestStatus: { ok: boolean; message: string } | null = null
+
+    get canTestVirtual(): boolean {
+        return !!this.installerState.selectedDevice?.port
+    }
+
+    /**
+     * Sends `<T id 0>` (close) or `<T id 1>` (throw) to the connected CommandStation.
+     * A virtual turnout has no servo to calibrate, so this is just a direct trigger
+     * (it fires the ONCLOSE/ONTHROW handlers already flashed to the board).
+     */
+    async testVirtualTurnout(action: 'close' | 'throw'): Promise<void> {
+        if (!this.editBuffer || this.editBuffer.type !== 'VIRTUAL') return
+        const port = this.installerState.selectedDevice?.port
+        if (!port) {
+            this.virtualTestStatus = { ok: false, message: 'No device connected.' }
+            return
+        }
+        const id = this.editBuffer.id
+        const cmd = `<T ${id} ${action === 'close' ? 0 : 1}>`
+        let openedByUs = false
+        try {
+            const alreadyOpen = await this.usb.isPortOpen(port)
+            if (!alreadyOpen) {
+                await this.usb.openPort(port, 115200)
+                openedByUs = true
+            }
+            await this.usb.write(port, cmd + '\n')
+            this.virtualTestStatus = { ok: true, message: `Sent ${cmd}` }
+        } catch (err) {
+            this.virtualTestStatus = { ok: false, message: `Failed to send ${cmd}: ${(err as Error).message}` }
+        } finally {
+            if (openedByUs) this.usb.closePort(port).catch(() => { /* best-effort */ })
+        }
     }
 
     private async _confirm(title: string, message: string): Promise<boolean> {

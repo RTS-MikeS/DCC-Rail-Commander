@@ -894,6 +894,21 @@ test.describe('Turnout Editor — tree (folders and virtual parents)', () => {
         await expect(page.getByTestId('virtual-events-fix')).toHaveCount(0)
     })
 
+    test('a VIRTUAL turnout has Close/Throw test buttons that send <T id state> and note that deployment is required', async ({ workspacePage: page }) => {
+        await openTurnoutEditor(page)
+        await switchToRaw(page)
+        await setMonacoContent(page, 'VIRTUAL_TURNOUT(300, "Yard Hub")')
+        await switchToVisual(page)
+        await selectTurnout(page, 'Yard Hub')
+
+        await expect(page.getByText('deployed to the CommandStation first')).toBeVisible({ timeout: 5_000 })
+        const status = page.getByTestId('virtual-test-status')
+        await page.getByTestId('virtual-test-close').click()
+        await expect(status).toContainText('Sent <T 300 0>')
+        await page.getByTestId('virtual-test-throw').click()
+        await expect(status).toContainText('Sent <T 300 1>')
+    })
+
     test('deleting a folder keeps its turnouts, moved up a level', async ({ workspacePage: page }) => {
         await openTurnoutEditor(page)
         await switchToRaw(page)
