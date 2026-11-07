@@ -182,6 +182,16 @@ describe('ConfigEditorState — turnout tree', () => {
             expect(texts(state)[0]).toBe('ONCLOSE(300)\nCLOSE(YARD_ENTRY)\nDONE')
         })
 
+        it('a raw edit that tags a new turnout under a virtual one wires up its events, but never removes lines', () => {
+            const state = makeState('VIRTUAL_TURNOUT(300, "Yard Hub")')
+            state.setTurnoutsFromRaw(['VIRTUAL_TURNOUT(300, "Yard Hub")', '// @tree: #300', 'SERVO_TURNOUT(200, 25, 410, 205, Slow, "Junction")'].join('\n'))
+            expect(texts(state)).toEqual(['ONCLOSE(300)\nCLOSE(200)\nDONE', 'ONTHROW(300)\nTHROW(200)\nDONE'])
+
+            // Untagging it (e.g. mid-edit) leaves the handlers alone.
+            state.setTurnoutsFromRaw(['VIRTUAL_TURNOUT(300, "Yard Hub")', 'SERVO_TURNOUT(200, 25, 410, 205, Slow, "Junction")'].join('\n'))
+            expect(texts(state)).toEqual(['ONCLOSE(300)\nCLOSE(200)\nDONE', 'ONTHROW(300)\nTHROW(200)\nDONE'])
+        })
+
         it('syncVirtualParentEvents wires up children that were tagged by hand', () => {
             const state = makeState(FILE) // 200 is tagged under 300 in the file, but there are no handlers
             expect(state.eventHandlers).toEqual([])

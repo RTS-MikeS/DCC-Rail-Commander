@@ -83,7 +83,7 @@ import {
     type SequenceIdEntry,
     type SequenceIdViolation,
 } from '../utils/myAutomationParser'
-import { addChildToVirtualEvents, canonicalizeVirtualEvents, syncVirtualEvents } from '../utils/virtual-turnout-events'
+import { addChildToVirtualEvents, canonicalizeVirtualEvents, parentChildPairs, syncVirtualEvents } from '../utils/virtual-turnout-events'
 import {
     parseHalDevicesFromAutomation,
     computeVpinAllocations,
@@ -465,10 +465,24 @@ ${body}`
             // reset every turnout's defaultState and drop its AUTOSTART THROW line.
             // Preserve the previous value for any id that still exists.
             const previousDefaultStateById = new Map(this.turnouts.map(t => [t.id, t.defaultState]))
-            this.turnouts = parseTurnoutFromFile(text).map(t => {
+            const before = this.turnouts
+            const parsed = parseTurnoutFromFile(text).map(t => {
                 const previousDefaultState = previousDefaultStateById.get(t.id)
                 return previousDefaultState ? { ...t, defaultState: previousDefaultState } : t
             })
+            // A turnout newly tagged under a VIRTUAL turnout (`// @tree: #300`) gets its
+            // CLOSE()/THROW() lines in the parent's events, same as a visual-editor placement.
+            // Additions only: a raw edit is applied while the user is still typing, so a
+            // half-written line must never delete event lines.
+            const had = new Set(parentChildPairs(before).map(p => `${p.parentId}:${p.childId}`))
+            let handlers = this.eventHandlers
+            for (const p of parentChildPairs(parsed)) {
+                if (had.has(`${p.parentId}:${p.childId}`)) continue
+                if (!parsed.some(t => t.id === p.parentId && t.type === 'VIRTUAL')) continue
+                handlers = addChildToVirtualEvents(handlers, p.parentId, p.childId, id => this.turnoutAliasName(id))
+            }
+            this.turnouts = parsed
+            if (handlers !== this.eventHandlers) this.eventHandlers = handlers
             this.turnoutFolders = parseTurnoutFolders(text)
             this._syncGeneratedTurnoutDefaultsContent()
             this.hasChanges = true

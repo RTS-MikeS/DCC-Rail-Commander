@@ -874,7 +874,7 @@ test.describe('Turnout Editor — tree (folders and virtual parents)', () => {
         expect(raw).not.toContain('@tree')
     })
 
-    test('a VIRTUAL turnout shows whether its children are in its events, and can add the missing ones', async ({ workspacePage: page }) => {
+    test('tagging a turnout under a VIRTUAL one in the raw file wires up its events automatically', async ({ workspacePage: page }) => {
         await openTurnoutEditor(page)
         await switchToRaw(page)
         await setMonacoContent(page, [
@@ -884,13 +884,9 @@ test.describe('Turnout Editor — tree (folders and virtual parents)', () => {
         ].join('\n'))
         await switchToVisual(page)
 
-        // Hand-tagged hierarchy: no ONCLOSE/ONTHROW handlers exist yet, so the hint warns.
         await selectTurnout(page, 'Yard Hub')
         const hint = page.getByTestId('virtual-events-hint')
-        await expect(hint).toContainText("1 of 1 child turnouts aren't in", { timeout: 5_000 })
-
-        await page.getByTestId('virtual-events-fix').click()
-        await expect(hint).toContainText('Events set up: 1 turnout in ONCLOSE/ONTHROW')
+        await expect(hint).toContainText('Events set up: 1 turnout in ONCLOSE/ONTHROW', { timeout: 5_000 })
         await expect(page.getByTestId('virtual-events-fix')).toHaveCount(0)
     })
 
