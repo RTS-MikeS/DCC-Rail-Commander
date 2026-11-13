@@ -259,8 +259,8 @@ test.describe('Servo Calibration', () => {
         await dialog(page).getByRole('button', { name: 'Continue' }).click()
 
         await expect(dialog(page).getByText('Calibrate Servo', { exact: true })).toBeVisible()
-        // New entries default to activeAngle 400 / inactiveAngle 100.
-        await expect(numericInput(page, 'Closed position')).toHaveValue('100')
+        // New entries default to closed 350 / thrown 400 (commit 4df8d32).
+        await expect(numericInput(page, 'Closed position')).toHaveValue('350')
         await expect(numericInput(page, 'Thrown position')).toHaveValue('400')
 
         // Save should commit the new turnout's (unmodified) defaults into myTurnouts.h.
