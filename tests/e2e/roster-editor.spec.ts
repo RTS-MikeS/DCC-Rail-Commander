@@ -91,6 +91,23 @@ async function getDetailTextInput(page: import('@playwright/test').Page, label: 
         .nth(index)
 }
 
+/**
+ * Bounding box of `locator` once it has stopped moving. The tree is rebuilt and the Syncfusion
+ * splitter re-lays-out shortly after switching back to Visual; a box read mid-settle makes a
+ * coordinate-based drag land on the wrong row under load.
+ */
+async function stableBox(locator: import('@playwright/test').Locator) {
+    await locator.waitFor({ state: 'visible' })
+    let prev = await locator.boundingBox()
+    for (let i = 0; i < 40; i++) {
+        await locator.page().waitForTimeout(100)
+        const cur = await locator.boundingBox()
+        if (cur && prev && cur.x === prev.x && cur.y === prev.y && cur.width === prev.width && cur.height === prev.height) return cur
+        prev = cur
+    }
+    return prev
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 test.describe('Roster Editor', () => {
@@ -481,8 +498,8 @@ test.describe('Roster Editor', () => {
         const tree = page.locator('#roster-treeview')
         const sub = tree.locator('li').filter({ hasText: 'Amtrak' }).last().locator('.e-fullrow').first()
         const thomas = tree.locator('li').filter({ hasText: 'Thomas' }).last().locator('.e-fullrow').first()
-        const from = await thomas.boundingBox()
-        const to = await sub.boundingBox()
+        const from = await stableBox(thomas)
+        const to = await stableBox(sub)
         await page.mouse.move(from!.x + 40, from!.y + from!.height / 2)
         await page.mouse.down()
         await page.mouse.move(to!.x + 40, to!.y + to!.height / 2, { steps: 12 })
@@ -527,8 +544,8 @@ test.describe('Roster Editor', () => {
         await switchToVisual(page)
 
         const tree = page.locator('#roster-treeview')
-        const group = await tree.locator('li').filter({ hasText: 'Steam Engines' }).last().locator('.e-fullrow').first().boundingBox()
-        const sub = await tree.locator('li').filter({ hasText: 'Amtrak' }).last().locator('.e-fullrow').first().boundingBox()
+        const group = await stableBox(tree.locator('li').filter({ hasText: 'Steam Engines' }).last().locator('.e-fullrow').first())
+        const sub = await stableBox(tree.locator('li').filter({ hasText: 'Amtrak' }).last().locator('.e-fullrow').first())
         await page.mouse.move(group!.x + 40, group!.y + group!.height / 2)
         await page.mouse.down()
         await page.mouse.move(sub!.x + 40, sub!.y + sub!.height / 2, { steps: 12 })
@@ -570,7 +587,7 @@ test.describe('Roster Editor', () => {
         await page.waitForTimeout(1000)
         const tree = page.locator('#roster-treeview')
         for (const label of ['LokSound5', 'Tsunami 2 GE ES44AC']) {
-            const group = await tree.locator('li').filter({ hasText: label }).last().locator('.e-fullrow').first().boundingBox()
+            const group = await stableBox(tree.locator('li').filter({ hasText: label }).last().locator('.e-fullrow').first())
             const sub = await page.evaluate(() => {
                 const li = [...document.querySelectorAll('#roster-treeview li[data-uid]')].find(el => /^\S*CSX\d+ locos?$/.test((el.querySelector(':scope > .e-text-content')?.textContent ?? '').trim().replace(/\s+/g, ' ')))
                 const r = li!.querySelector(':scope > .e-fullrow')!.getBoundingClientRect()

@@ -45,6 +45,28 @@ const FOLDER_PREFIX = 'folder:'
 const groupNodeId = (macroName: string, folderPath: string): string => (folderPath ? `group:${macroName}@${folderPath}` : `group:${macroName}`)
 
 /** Splits a `group:` node id back into the macro name and the folder it sits in. */
+/** Replaces a deleted function with an empty slot so later F-numbers don't shift. */
+function removeFunctionSlot(list: RosterFunction[], i: number): RosterFunction[] {
+    if (i === list.length - 1) return list.slice(0, -1)
+    return list.map((f, idx) => (idx === i ? { name: '', isMomentary: false, noFunction: true } : f))
+}
+
+/** Swaps entry i with i+dir; returns the same array when out of range. */
+function swapFunctions(list: RosterFunction[], i: number, dir: -1 | 1): RosterFunction[] {
+    const j = i + dir
+    if (j < 0 || j >= list.length) return list
+    const out = [...list]
+    ;[out[i], out[j]] = [out[j], out[i]]
+    return out
+}
+
+/** Typing a name turns a no-function slot into a real function; clearing it makes it a slot. */
+function normalizeFunction(f: RosterFunction | undefined): void {
+    if (!f) return
+    f.name = (f.name ?? '').trim()
+    f.noFunction = f.name === ''
+}
+
 function parseGroupNodeId(id: string): { macroName: string; folderPath: string } {
     const body = id.slice('group:'.length)
     const at = body.indexOf('@')
@@ -113,6 +135,25 @@ export class RosterEditorCustomElement {
         },
     }
 
+    /** Serialized `state.roster` the tree was last built from; different content later means the roster changed behind this editor's back (e.g. a device's config finished loading after the editor mounted). Content, not array identity: no-op commits replace the array without changing anything. */
+    private _builtRoster: string | null = null
+
+    private readonly _rosterSubscriber = {
+        handleChange: () => {
+            // This editor's own mutators rebuild the tree synchronously, which updates _builtRoster,
+            // so by the time this deferred check runs only external changes still differ.
+            queueTask(() => {
+                if (this._detached || !this.sfTree || JSON.stringify(this.state.roster) === this._builtRoster) return
+                if (this.editBufferIndex !== null) {
+                    const fresh = this.state.roster[this.editBufferIndex]
+                    if (fresh) this._setBuffer(this.editBufferIndex, fresh)
+                    else this.clearBuffer()
+                }
+                this._rebuildTree()
+            })
+        },
+    }
+
     attached(): void {
         // Aurelia's if.bind caches and reuses this same component instance across
         // hide/show cycles — re-apply the current default-editor-view preference on
@@ -129,6 +170,7 @@ export class RosterEditorCustomElement {
             this.aliasInput = this.state.getPrimaryAliasNameForId(this.editBuffer.dccAddress, 'Roster')
         }
         this.observerLocator.getObserver(this.state, 'aliases').subscribe(this._aliasSubscriber)
+        this.observerLocator.getObserver(this.state, 'roster').subscribe(this._rosterSubscriber)
         queueTask(() => {
             if (this._detached) return
             const savedWidth = this._loadSidebarWidth()
@@ -195,6 +237,7 @@ export class RosterEditorCustomElement {
                 },
             })
             this.sfTree.appendTo(this.treeEl)
+            this._builtRoster = JSON.stringify(this.state.roster)
 
             // ContextMenu — second-arg constructor form per SF docs:
             // https://ej2.syncfusion.com/javascript/documentation/treeview/how-to/process-the-tree-node-operations-using-context-menu
@@ -242,6 +285,7 @@ export class RosterEditorCustomElement {
     detaching(): void {
         this._detached = true
         this.observerLocator.getObserver(this.state, 'aliases').unsubscribe(this._aliasSubscriber)
+        this.observerLocator.getObserver(this.state, 'roster').unsubscribe(this._rosterSubscriber)
         if (this.activeTab === 'raw') {
             const text = this.rawEditor?.flush() ?? this._rawText
             this._processRawLeave(text)
@@ -449,6 +493,7 @@ export class RosterEditorCustomElement {
 
     private _rebuildTree(): void {
         if (!this.sfTree || this._inDrop) return
+        this._builtRoster = JSON.stringify(this.state.roster)
         const data = this._buildTreeData()
         this.sfTree.fields = {
             dataSource: data as any,
@@ -1204,12 +1249,19 @@ export class RosterEditorCustomElement {
     async removeGroupFunction(i: number): Promise<void> {
         if (!this.selectedMacroName) return
         if (!(await this._confirmRemoveFunction(this.groupFunctions[i]?.name, i))) return
-        this.groupFunctions = this.groupFunctions.filter((_, idx) => idx !== i)
+        this.groupFunctions = removeFunctionSlot(this.groupFunctions, i)
+        this.state.updateDefineFunctions(this.selectedMacroName, this.groupFunctions)
+    }
+
+    moveGroupFunction(i: number, dir: -1 | 1): void {
+        if (!this.selectedMacroName) return
+        this.groupFunctions = swapFunctions(this.groupFunctions, i, dir)
         this.state.updateDefineFunctions(this.selectedMacroName, this.groupFunctions)
     }
 
     updateGroupFunctionName(i: number): void {
         if (!this.selectedMacroName) return
+        normalizeFunction(this.groupFunctions[i])
         this.state.updateDefineFunctions(this.selectedMacroName, this.groupFunctions)
     }
 
@@ -1275,11 +1327,18 @@ export class RosterEditorCustomElement {
         if (!this.editBuffer) return
         if (!(await this._confirmRemoveFunction(this.editBuffer.functions[index]?.name, index))) return
         if (!this.editBuffer) return
-        this.editBuffer.functions = this.editBuffer.functions.filter((_, i) => i !== index)
+        this.editBuffer.functions = removeFunctionSlot(this.editBuffer.functions, index)
+        this.commitBuffer()
+    }
+
+    moveFunction(index: number, dir: -1 | 1): void {
+        if (!this.editBuffer) return
+        this.editBuffer.functions = swapFunctions(this.editBuffer.functions, index, dir)
         this.commitBuffer()
     }
 
     updateFunctionName(index: number): void {
+        normalizeFunction(this.editBuffer?.functions[index])
         this.commitBuffer()
     }
 
@@ -1362,12 +1421,19 @@ export class RosterEditorCustomElement {
 
     async removeAppendedFunction(index: number): Promise<void> {
         if (!(await this._confirmRemoveFunction(this.appendedFunctionsList[index]?.name, index))) return
-        this.appendedFunctionsList = this.appendedFunctionsList.filter((_, i) => i !== index)
+        this.appendedFunctionsList = removeFunctionSlot(this.appendedFunctionsList, index)
+        this.editBuffer!.appendedFunctions = this.appendedFunctionsList.length > 0 ? [...this.appendedFunctionsList] : undefined
+        queueTask(() => this.commitBuffer())
+    }
+
+    moveAppendedFunction(index: number, dir: -1 | 1): void {
+        this.appendedFunctionsList = swapFunctions(this.appendedFunctionsList, index, dir)
         this.editBuffer!.appendedFunctions = this.appendedFunctionsList.length > 0 ? [...this.appendedFunctionsList] : undefined
         queueTask(() => this.commitBuffer())
     }
 
     updateAppendedFunctionName(index: number): void {
+        normalizeFunction(this.appendedFunctionsList[index])
         this.editBuffer!.appendedFunctions = this.appendedFunctionsList.length > 0 ? [...this.appendedFunctionsList] : undefined
         queueTask(() => this.commitBuffer())
     }

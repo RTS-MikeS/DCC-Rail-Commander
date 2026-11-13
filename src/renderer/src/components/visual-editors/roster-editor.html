@@ -44,7 +44,10 @@
                             class="w-5 h-5 flex items-center justify-center rounded text-gray-500 hover:text-gray-900 dark:hover:text-white">×</button>
                     </div>
 
-                    <div ref="treeEl" id="roster-treeview" class="flex-1 overflow-auto min-h-0"></div>
+                    <!-- Scroll container is separate from the tree host: Syncfusion sets overflow:hidden on .e-treeview itself. -->
+                    <nav class="flex-1 min-h-0 overflow-auto" aria-label="Roster">
+                        <div ref="treeEl" id="roster-treeview"></div>
+                    </nav>
 
                     <div if.bind="roster.length === 0" class="flex-1 flex items-center justify-center p-4">
                         <p class="text-gray-600 text-xs text-center">No entries.<br>Click + to add one.</p>
@@ -124,14 +127,15 @@
                                     <input type="text"
                                         class="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-gray-100 rounded px-2 py-1 text-xs outline-none focus:border-blue-500 transition-colors"
                                         value.bind="func.name" blur.trigger="updateFunctionName($index)"
-                                        placeholder="${func.noFunction ? '(no function)' : 'Function name'}"
-                                        disabled.bind="func.noFunction" />
+                                        placeholder="${func.noFunction ? '(no function)' : 'Function name'}" />
                                     <label
                                         class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 cursor-pointer whitespace-nowrap shrink-0">
                                         <input type="checkbox" class="w-3.5 h-3.5" checked.bind="func.isMomentary"
                                             change.trigger="toggleMomentary($index)" />
                                         Momentary
                                     </label>
+                                    <button class="w-5 h-6 flex items-center justify-center rounded text-gray-500 hover:text-blue-500 disabled:opacity-30 shrink-0" click.trigger="moveFunction($index, -1)" disabled.bind="$index === 0" title="Move up">▲</button>
+                                    <button class="w-5 h-6 flex items-center justify-center rounded text-gray-500 hover:text-blue-500 disabled:opacity-30 shrink-0" click.trigger="moveFunction($index, 1)" disabled.bind="$last" title="Move down">▼</button>
                                     <button
                                         class="w-6 h-6 flex items-center justify-center rounded bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-gray-900 dark:hover:text-white text-sm font-bold transition-colors shrink-0"
                                         click.trigger="removeFunction($index)" title="Remove">×</button>
@@ -272,14 +276,15 @@
                                     <input type="text"
                                         class="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-gray-100 rounded px-2 py-1 text-xs outline-none focus:border-blue-500 transition-colors"
                                         value.bind="func.name" blur.trigger="updateAppendedFunctionName($index)"
-                                        placeholder="${func.noFunction ? '(no function)' : 'Function name'}"
-                                        disabled.bind="func.noFunction" />
+                                        placeholder="${func.noFunction ? '(no function)' : 'Function name'}" />
                                     <label
                                         class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 cursor-pointer whitespace-nowrap shrink-0">
                                         <input type="checkbox" class="w-3.5 h-3.5" checked.bind="func.isMomentary"
                                             change.trigger="toggleAppendedMomentary($index)" />
                                         Momentary
                                     </label>
+                                    <button class="w-5 h-6 flex items-center justify-center rounded text-gray-500 hover:text-blue-500 disabled:opacity-30 shrink-0" click.trigger="moveAppendedFunction($index, -1)" disabled.bind="$index === 0" title="Move up">▲</button>
+                                    <button class="w-5 h-6 flex items-center justify-center rounded text-gray-500 hover:text-blue-500 disabled:opacity-30 shrink-0" click.trigger="moveAppendedFunction($index, 1)" disabled.bind="$last" title="Move down">▼</button>
                                     <button
                                         class="w-6 h-6 flex items-center justify-center rounded bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-gray-900 dark:hover:text-white text-sm font-bold transition-colors shrink-0"
                                         click.trigger="removeAppendedFunction($index)" title="Remove">×</button>
@@ -380,14 +385,15 @@
                                     <input type="text"
                                         class="flex-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-gray-100 rounded px-2 py-1 text-xs outline-none focus:border-blue-500 transition-colors"
                                         value.bind="func.name" blur.trigger="updateGroupFunctionName($index)"
-                                        placeholder="${func.noFunction ? '(no function)' : 'Function name'}"
-                                        disabled.bind="func.noFunction" />
+                                        placeholder="${func.noFunction ? '(no function)' : 'Function name'}" />
                                     <label
                                         class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 cursor-pointer whitespace-nowrap shrink-0">
                                         <input type="checkbox" class="w-3.5 h-3.5" checked.bind="func.isMomentary"
                                             change.trigger="toggleGroupMomentary($index)" />
                                         Momentary
                                     </label>
+                                    <button class="w-5 h-6 flex items-center justify-center rounded text-gray-500 hover:text-blue-500 disabled:opacity-30 shrink-0" click.trigger="moveGroupFunction($index, -1)" disabled.bind="$index === 0" title="Move up">▲</button>
+                                    <button class="w-5 h-6 flex items-center justify-center rounded text-gray-500 hover:text-blue-500 disabled:opacity-30 shrink-0" click.trigger="moveGroupFunction($index, 1)" disabled.bind="$last" title="Move down">▼</button>
                                     <button
                                         class="w-6 h-6 flex items-center justify-center rounded bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-gray-900 dark:hover:text-white text-sm font-bold transition-colors shrink-0"
                                         click.trigger="removeGroupFunction($index)" title="Remove">×</button>
