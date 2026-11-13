@@ -96,6 +96,8 @@ export class ExrailBlockCanvasCustomElement {
      * uses instead of parseBody().
      */
     @bindable({ mode: BindingMode.oneTime }) initialBody = ''
+    /** Mount directly in edit mode (the host just created this entry and the canvas mounts afterwards, so it can't call reload(body, true)). */
+    @bindable({ mode: BindingMode.oneTime }) startEditing = false
     @bindable defined: DefinedObjects | null = null
     /** Fires on every structural change for an id/alias-flavored hat (ROUTE/SEQUENCE) — body only, matching RouteEntry.body/SequenceEntry.body. Unused for a param-flavored hat; see onFullTextChange. */
     @bindable onBodyChange: ((body: string) => void) | null = null
@@ -131,6 +133,10 @@ export class ExrailBlockCanvasCustomElement {
     private splitterObj: Splitter | null = null
 
     parseError: string | null = null
+    /** False = read-only view of the completed blocks (no palette/flyout/trashcan, blocks can't be
+     *  moved or edited); true = full editing. Defaults to read-only — an entry opens in edit mode
+     *  only when it's brand new (the host passes `edit` to reload()) or has no body yet. */
+    editing = false
     /** Compiled EXRAIL text for the always-visible readonly output pane — kept in sync with the
      *  workspace by _refreshOutput(), called from every point that changes what the workspace would
      *  compile to (initial/reloaded load, structural edits). Deliberately a plain display field, not
@@ -149,6 +155,7 @@ export class ExrailBlockCanvasCustomElement {
         this._detached = false
         registerExrailBlocks()
         defineExrailThemes()
+        this.editing = this.startEditing || this.initialBody.trim() === ''
         this._build()
         // Deferred (same convention as routes-editor.ts/sequences-editor.ts's own Splitter setup):
         // the palette+canvas row and the output pane below are already rendered as static DOM by the
@@ -174,6 +181,12 @@ export class ExrailBlockCanvasCustomElement {
 
     detaching(): void {
         this._detached = true
+        this._teardownWorkspace()
+        try { this.splitterObj?.destroy() } catch { /* already broken — nothing to clean up */ }
+        this.splitterObj = null
+    }
+
+    private _teardownWorkspace(): void {
         this._resizeObserver?.disconnect()
         this._resizeObserver = null
         this._visibilityObserver?.disconnect()
@@ -187,8 +200,24 @@ export class ExrailBlockCanvasCustomElement {
         if (this.workspace) setWorkspaceHatCallbacks(this.workspace, null)
         try { this.workspace?.dispose() } catch { /* already broken — nothing to clean up */ }
         this.workspace = null
-        try { this.splitterObj?.destroy() } catch { /* already broken — nothing to clean up */ }
-        this.splitterObj = null
+    }
+
+    /** Switches between the read-only view and edit mode. Blockly's `readOnly` is an inject-time
+     *  option (it also drops the toolbox/trashcan), so this re-injects the workspace from the
+     *  current compiled text rather than toggling flags on live blocks. */
+    setEditing(editing: boolean): void {
+        if (editing === this.editing) return
+        if (this._detached || !this.workspace) { this.editing = editing; return }
+        const text = this._refreshOutput()
+        this._teardownWorkspace()
+        this.editing = editing
+        // A parse failure's fallback is an empty hat — keep the original body so nothing is lost.
+        if (!this.parseError) this.initialBody = text
+        this._build()
+    }
+
+    toggleEditing(): void {
+        this.setEditing(!this.editing)
     }
 
     private _loadOutputPaneWidth(): string {
@@ -206,10 +235,17 @@ export class ExrailBlockCanvasCustomElement {
      * already-mounted canvas. Clears the workspace's blocks rather than disposing/re-injecting the
      * whole Blockly instance, so the toolbox/flyout chrome isn't rebuilt on every row switch.
      */
-    reload(body: string): void {
+    reload(body: string, edit = false): void {
         this.initialBody = body
         this.parseError = null
-        if (this._detached || !this.workspace) return
+        const wantEditing = edit || body.trim() === ''
+        if (this._detached || !this.workspace) { this.editing = wantEditing; return }
+        if (wantEditing !== this.editing) {
+            this._teardownWorkspace()
+            this.editing = wantEditing
+            this._build()
+            return
+        }
         this.workspace.clear()
         this._loadInto(this.workspace)
         // clear()/reload never itself resizes the container, but re-forces Blockly's own cached
@@ -223,7 +259,7 @@ export class ExrailBlockCanvasCustomElement {
         if (!this.workspace) return
         setWorkspaceDefined(this.workspace, this.defined)
         this._rebuildPaletteTree()
-        this.workspace.updateToolbox(flatToolboxForPath(this.selectedLeafPath, this.defined, this._isParamFlavoredHat()) as unknown as Blockly.utils.toolbox.ToolboxDefinition)
+        if (this.editing) this.workspace.updateToolbox(flatToolboxForPath(this.selectedLeafPath, this.defined, this._isParamFlavoredHat()) as unknown as Blockly.utils.toolbox.ToolboxDefinition)
         this._normalizeExistingBlocks()
     }
 
@@ -276,7 +312,7 @@ export class ExrailBlockCanvasCustomElement {
             return
         }
         this.selectedLeafPath = node.path
-        this.workspace?.updateToolbox(flatToolboxForPath(node.path, this.defined, this._isParamFlavoredHat()) as unknown as Blockly.utils.toolbox.ToolboxDefinition)
+        if (this.editing) this.workspace?.updateToolbox(flatToolboxForPath(node.path, this.defined, this._isParamFlavoredHat()) as unknown as Blockly.utils.toolbox.ToolboxDefinition)
     }
 
     private _build(): void {
@@ -289,13 +325,14 @@ export class ExrailBlockCanvasCustomElement {
             // in exrail-block-canvas.html) is entirely our own, not Blockly's — see
             // exrail-blockly-toolbox.ts for why. onCategoryClick() swaps this flyout's contents via
             // updateToolbox().
-            toolbox: flatToolboxForPath(this.selectedLeafPath, this.defined, this._isParamFlavoredHat()) as unknown as Blockly.utils.toolbox.ToolboxDefinition,
+            ...(this.editing ? { toolbox: flatToolboxForPath(this.selectedLeafPath, this.defined, this._isParamFlavoredHat()) as unknown as Blockly.utils.toolbox.ToolboxDefinition } : {}),
+            readOnly: !this.editing,
             // Served from src/renderer/public/blockly-media/ (Vite's publicDir, copied verbatim
             // into the build output) — without this, Blockly defaults to fetching its icon/sound
             // sprites from static.blockly.com, which the app's CSP blocks (img-src/connect-src
             // 'self' only) and which would be unwanted network access regardless.
             media: './blockly-media/',
-            trashcan: true,
+            trashcan: this.editing,
             zoom: { controls: true, wheel: true, startScale: 1 },
             move: { scrollbars: true, drag: true, wheel: false },
             theme: themeFor(this.themeService.effective),

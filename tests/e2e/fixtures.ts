@@ -904,4 +904,16 @@ export const test = base.extend<WorkspaceFixtures>({
     },
 })
 
+/**
+ * Blocks canvases open read-only (no palette, blocks locked) unless the entry is brand new.
+ * Clicks the canvas's Edit button if it's showing — a no-op when already editing.
+ */
+export async function enterEditMode(page: import('@playwright/test').Page): Promise<void> {
+    const toggle = page.getByTestId('exrail-edit-toggle')
+    await toggle.waitFor({ state: 'visible', timeout: 10_000 })
+    if (((await toggle.textContent()) ?? '').trim() === 'Edit') await toggle.click()
+    await expect(page.getByTestId('exrail-palette')).toBeVisible()
+    await expect(page.locator('.blocklySvg').first()).toBeVisible()
+}
+
 export { expect }

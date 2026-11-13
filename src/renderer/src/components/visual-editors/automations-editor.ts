@@ -30,7 +30,7 @@ export class AutomationsEditorCustomElement {
     private _userChoseTab = false
     rawEditor: any = null
     /** Ref to the mounted exrail-block-canvas — reused across automation selections (see its reload() doc comment), so a selection change must explicitly push the new body into it. */
-    blockCanvas: { reload(body: string): void; refreshSize(): void } | null = null
+    blockCanvas: { reload(body: string, edit?: boolean): void; refreshSize(): void } | null = null
     /** Ref to the per-row Raw Monaco editor — reused across row selections via switchModel(), same reasoning as blockCanvas above. */
     rowRawEditor: { flush(): string; switchModel(filename: string, value: string): void } | null = null
 
@@ -272,7 +272,7 @@ export class AutomationsEditorCustomElement {
         this.state.automations = [...this.state.automations, { id: nextId, description: 'New Automation', body: '', ...(this._newEntryFolder() ? { folder: this._newEntryFolder() } : {}) }]
         this.state.syncAll()
         this.selectedId = nextId
-        this.blockCanvas?.reload('')
+        this.blockCanvas?.reload('', true)
         this.rowRawSnapshot = this.selectedAutomationText
         this.rowRawEditor?.switchModel(this.rowRawFilename, this.rowRawSnapshot)
     }

@@ -12,7 +12,7 @@
  * Run: pnpm test:e2e --grep "Event Handlers editor"
  */
 
-import { test, expect, answerConfirmDialog } from './fixtures'
+import { test, expect, answerConfirmDialog, enterEditMode } from './fixtures'
 
 async function openEventHandlersEditor(page: import('@playwright/test').Page) {
     await page.getByText('Event Handlers', { exact: true }).first().click()
@@ -55,6 +55,8 @@ test.describe('Event Handlers editor', () => {
         await expect(page.locator('event-handlers-editor [data-testid="tree-item"]').first()).toContainText('On rail sync signal valid')
 
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+
+        await enterEditMode(page)
         const outputText = await getOutputPaneText(page)
         expect(outputText).toContain('ONRAILSYNCON')
         expect(outputText).toContain('DONE')
@@ -65,6 +67,8 @@ test.describe('Event Handlers editor', () => {
         await addHandler(page, 'ONCLOSE')
 
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+
+        await enterEditMode(page)
         const outputText = await getOutputPaneText(page)
         // Seeded with the first available turnout (200 or 201, per MOCK_TURNOUTS_H) — not blank.
         expect(outputText).toMatch(/ONCLOSE\(20[01]\)/)
@@ -127,6 +131,7 @@ test.describe('Event Handlers editor', () => {
         await openEventHandlersEditor(page)
         await addHandler(page, 'ONTHROW')
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         const palette = page.locator('exrail-block-canvas nav')
         await palette.getByRole('button', { name: 'Turnouts', exact: false }).click()
@@ -141,6 +146,7 @@ test.describe('Block palette regression — new categories from this session ren
         await page.getByText('Routes', { exact: true }).first().click()
         await expect(page.getByRole('button', { name: 'Visual' })).toBeVisible()
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         const palette = page.locator('exrail-block-canvas nav')
         await expect(palette.getByRole('button', { name: 'Messages', exact: false })).toBeVisible()
@@ -154,11 +160,25 @@ test.describe('Block palette regression — new categories from this session ren
         await page.getByText('Routes', { exact: true }).first().click()
         await expect(page.getByRole('button', { name: 'Visual' })).toBeVisible()
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         const palette = page.locator('exrail-block-canvas nav')
         await palette.getByRole('button', { name: 'Turnouts', exact: false }).click()
         const flyout = page.locator('.blocklyFlyout')
         await expect(flyout.getByText('Throw turnout', { exact: false })).toBeVisible()
         await expect(flyout.getByText('Also:', { exact: false })).toHaveCount(0)
+    })
+})
+
+test.describe('Event Handlers editor — block canvas edit mode', () => {
+    test('a newly added handler opens in edit mode; Done editing hides the palette', async ({ workspacePage: page }) => {
+        await openEventHandlersEditor(page)
+        await addHandler(page, 'ONTHROW')
+        await expect(page.getByTestId('exrail-edit-toggle')).toHaveText('Done editing')
+        await expect(page.getByTestId('exrail-palette')).toBeVisible()
+
+        await page.getByTestId('exrail-edit-toggle').click()
+        await expect(page.getByTestId('exrail-palette')).toBeHidden()
+        await expect(page.getByTestId('exrail-edit-toggle')).toHaveText('Edit')
     })
 })

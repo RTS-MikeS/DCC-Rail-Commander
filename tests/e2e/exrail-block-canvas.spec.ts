@@ -20,7 +20,7 @@
  * Run: pnpm test:e2e --grep "EXRAIL block canvas"
  */
 
-import { test, expect } from './fixtures'
+import { test, expect, enterEditMode } from './fixtures'
 
 async function openRoutesEditor(page: import('@playwright/test').Page) {
     await page.getByText('Routes', { exact: true }).first().click()
@@ -139,6 +139,8 @@ test.describe('EXRAIL block canvas', () => {
         await expect(row.getByTestId('alias-warning-dot')).toBeVisible()
 
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+
+        await enterEditMode(page)
         await setHatAlias(page, 'MAIN_ROUTE')
 
         await expect(row.getByTestId('alias-warning-dot')).toHaveCount(0)
@@ -158,6 +160,7 @@ test.describe('EXRAIL block canvas', () => {
         // flyout — Turnouts is selected by default with no click needed.
         await expect(page.locator('exrail-block-canvas')).toBeVisible()
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         await expect(page.locator('.blocklyFlyout').first()).toBeVisible({ timeout: 10_000 })
         const palette = page.locator('exrail-block-canvas nav')
         await expect(palette.getByRole('button', { name: 'Turnouts', exact: false })).toHaveClass(/bg-blue-600/)
@@ -171,6 +174,7 @@ test.describe('EXRAIL block canvas', () => {
     test('shows an always-visible readonly output pane matching the seeded route body', async ({ workspacePage: page }) => {
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         // The pane sits beside the canvas (not behind a Raw toggle) and starts populated from the
         // initial load, not just after the first edit.
@@ -183,6 +187,7 @@ test.describe('EXRAIL block canvas', () => {
     test('the palette groups blocks into nested categories without ever overlaying the workspace', async ({ workspacePage: page }) => {
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         // The flyout is a permanent, non-overlapping panel — always open, never popping over the
         // placed workspace blocks (see exrail-blockly-toolbox.ts's flyout-only-toolbox rationale).
@@ -243,12 +248,15 @@ test.describe('EXRAIL block canvas', () => {
         await blocksButton.click()
 
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+
+        await enterEditMode(page)
         await expect(page.locator('[data-id="n1"] .blocklyCommentIcon')).toBeVisible()
     })
 
     test('editing in Blocks mode updates the Raw myRoutes.h view', async ({ workspacePage: page }) => {
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         await page.getByTestId('editor-tab-raw').click()
         await expect(page.locator('div.monaco-editor')).toBeVisible()
@@ -260,6 +268,7 @@ test.describe('EXRAIL block canvas', () => {
     test('turnout-ref param is a restricted dropdown of known turnouts, never free text', async ({ workspacePage: page }) => {
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         await expect(page.locator('[data-id="n1"]')).toContainText('Main Line Junction (200)')
 
         // Strict aliases is on by default — the seeded route has none yet.
@@ -279,6 +288,7 @@ test.describe('EXRAIL block canvas', () => {
     test('output pane updates live when a block field changes, without switching to Raw', async ({ workspacePage: page }) => {
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         await expect(page.locator('[data-id="n1"]')).toContainText('Main Line Junction (200)')
         await expect(page.getByTestId('exrail-output-text')).toContainText('THROW(200)')
 
@@ -297,6 +307,7 @@ test.describe('EXRAIL block canvas', () => {
         // _normalizeExistingBlocks() in exrail-block-canvas.ts).
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         await setHatAlias(page, 'MAIN_ROUTE')
 
         await openAliasesEditor(page)
@@ -307,6 +318,7 @@ test.describe('EXRAIL block canvas', () => {
 
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         await expect(page.locator('[data-id="n1"]')).toContainText('Main Line Junction (200)')
 
         await page.getByRole('button', { name: 'dropdown: Main Line Junction (200)', exact: false }).click()
@@ -334,6 +346,7 @@ test.describe('EXRAIL block canvas', () => {
         // _normalizeExistingBlocks() in exrail-block-canvas.ts).
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         await setHatAlias(page, 'MAIN_ROUTE')
 
         await openAliasesEditor(page)
@@ -344,6 +357,7 @@ test.describe('EXRAIL block canvas', () => {
 
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         await expect(page.locator('[data-id="n2"]')).toContainText('mysidingpoint (201)')
         await expect(page.locator('[data-id="n2"]')).not.toContainText('not found')
@@ -358,6 +372,7 @@ test.describe('EXRAIL block canvas', () => {
     test('resizes correctly after the file-level Visual/Raw tabs are toggled away and back', async ({ workspacePage: page }) => {
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         const sizeBefore = await page.locator('.blocklySvg').first().boundingBox()
         expect(sizeBefore?.width).toBeGreaterThan(100)
 
@@ -395,6 +410,7 @@ test.describe('EXRAIL block canvas', () => {
         const rows = page.locator('sequences-editor nav[aria-label="Sequences"] a')
         await rows.nth(0).click()
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         const sizeBefore = await page.locator('.blocklySvg').first().boundingBox()
         expect(sizeBefore?.width).toBeGreaterThan(100)
 
@@ -428,6 +444,7 @@ test.describe('EXRAIL block canvas', () => {
         const rows = page.locator('sequences-editor nav[aria-label="Sequences"] a')
         await rows.nth(0).click()
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         await expect(page.getByTestId('exrail-output-text')).toContainText('DELAY(500)')
 
         // reload() reuses the same Blockly instance across row switches (see exrail-block-canvas.ts)
@@ -456,11 +473,13 @@ test.describe('EXRAIL block canvas', () => {
         await page.getByRole('button', { name: 'Visual', exact: true }).click()
         await page.locator('sequences-editor nav[aria-label="Sequences"] a').first().click()
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         await page.getByText('Signals', { exact: true }).first().click()
         await expect(page.locator('signals-editor')).toBeVisible()
         await page.getByText('Sequences', { exact: true }).first().click()
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         await page.waitForTimeout(300)
 
         // The injected SVG should fill its immediate viewport wrapper exactly, not just be
@@ -544,6 +563,7 @@ test.describe('EXRAIL block canvas', () => {
         // stays mounted underneath while the underlying body text changes from outside it.
         await openRoutesEditor(page)
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
 
         const unknownWord = randomUnknownCommand()
         await page.getByTestId('editor-tab-raw').click()
@@ -577,6 +597,7 @@ test.describe('EXRAIL block canvas', () => {
         await page.locator('routes-editor button[title="Add new route"]').click()
         await page.locator('routes-editor nav[aria-label="Routes"] a', { hasText: 'New Route' }).click()
         await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+        await enterEditMode(page)
         // The hat block's ID field reactively picks up the new route's real id (2) — wait for
         // that catch-up to actually land before asserting no warning icon appeared, since a
         // check made too early would trivially "pass" whether or not the bug is present.
@@ -596,6 +617,7 @@ test.describe('EXRAIL block canvas', () => {
             await page.getByRole('button', { name: 'Visual', exact: true }).click()
             await page.locator('routes-editor nav[aria-label="Routes"] a').first().click()
             await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+            await enterEditMode(page)
 
             // Strict aliases is on by default — the seeded route has none yet, which would
             // silently block the STEALTH body edits below (see updateRoute()'s strict-aliases
@@ -782,10 +804,90 @@ test.describe('EXRAIL block canvas', () => {
             await page.getByRole('button', { name: 'Visual', exact: true }).click()
             await page.locator('routes-editor nav[aria-label="Routes"] a').first().click()
             await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+            await enterEditMode(page)
 
             await expect(page.locator('[data-id="n1"]')).toContainText('int counter = 0;')
             await page.locator('[data-id="n1"]').getByRole('button', { name: /^Edit text:/ }).click()
             await expect(page.locator('.blocklyDropDownDiv div.monaco-editor')).toBeVisible()
         })
+    })
+})
+
+test.describe('EXRAIL block canvas — read-only by default', () => {
+    test('an existing route opens read-only: blocks shown, no palette, Edit button offered', async ({ workspacePage: page }) => {
+        await openRoutesEditor(page)
+        await expect(page.locator('.blocklySvg').first()).toBeVisible({ timeout: 10_000 })
+
+        // The completed set of blocks is rendered...
+        await expect(page.locator('[data-id="n1"]')).toContainText('Main Line Junction (200)')
+        await expect(page.getByTestId('exrail-output-text')).toContainText('THROW(200)')
+        // ...but the drawer (palette sidebar + flyout) and trashcan are not.
+        await expect(page.getByTestId('exrail-palette')).toBeHidden()
+        await expect(page.locator('.blocklyFlyout')).toHaveCount(0)
+        await expect(page.locator('.blocklyTrash')).toHaveCount(0)
+        await expect(page.getByTestId('exrail-edit-toggle')).toHaveText('Edit')
+    })
+
+    test('read-only blocks cannot be changed: field dropdowns do not open and Delete removes nothing', async ({ workspacePage: page }) => {
+        await openRoutesEditor(page)
+        await expect(page.locator('[data-id="n1"]')).toContainText('Main Line Junction (200)')
+
+        await page.locator('[data-id="n1"]').click()
+        await page.keyboard.press('Delete')
+        await expect(page.locator('[data-id="n1"]')).toHaveCount(1)
+
+        await page.locator('[data-id="n1"]').getByText('Main Line Junction (200)').click({ force: true })
+        await expect(page.locator('.blocklyMenu')).toHaveCount(0)
+        await expect(page.getByTestId('exrail-output-text')).toContainText('THROW(200)')
+    })
+
+    test('clicking Edit shows the palette; Done editing returns to read-only with content intact', async ({ workspacePage: page }) => {
+        await openRoutesEditor(page)
+        await expect(page.getByTestId('exrail-palette')).toBeHidden()
+
+        await page.getByTestId('exrail-edit-toggle').click()
+        await expect(page.getByTestId('exrail-palette')).toBeVisible()
+        await expect(page.locator('.blocklyFlyout').first()).toBeVisible()
+        await expect(page.getByTestId('exrail-edit-toggle')).toHaveText('Done editing')
+        await expect(page.locator('[data-id="n1"]')).toContainText('Main Line Junction (200)')
+
+        await page.getByTestId('exrail-edit-toggle').click()
+        await expect(page.getByTestId('exrail-palette')).toBeHidden()
+        await expect(page.locator('.blocklyFlyout')).toHaveCount(0)
+        await expect(page.locator('[data-id="n1"]')).toContainText('Main Line Junction (200)')
+        await expect(page.getByTestId('exrail-output-text')).toContainText('CLOSE(201)')
+    })
+
+    test('an edit made in edit mode survives switching back to read-only', async ({ workspacePage: page }) => {
+        await openRoutesEditor(page)
+        await enterEditMode(page)
+        await setHatAlias(page, 'MAIN_ROUTE')
+        await pickDropdownOption(page, 'Main Line Junction (200)', 'Yard Entry (201)')
+        await expect(page.getByTestId('exrail-output-text')).toContainText('THROW(201)')
+
+        await page.getByTestId('exrail-edit-toggle').click()
+        await expect(page.getByTestId('exrail-palette')).toBeHidden()
+        await expect(page.getByTestId('exrail-output-text')).toContainText('THROW(201)')
+        await expect(page.locator('[data-id="n1"]')).toContainText('Yard Entry (201)')
+    })
+
+    test('a newly added route opens already in edit mode', async ({ workspacePage: page }) => {
+        await openRoutesEditor(page)
+        await expect(page.getByTestId('exrail-palette')).toBeHidden()
+
+        await page.locator('routes-editor button[title="Add new route"]').click()
+        await expect(page.getByTestId('exrail-edit-toggle')).toHaveText('Done editing')
+        await expect(page.getByTestId('exrail-palette')).toBeVisible()
+        await expect(page.locator('.blocklyFlyout').first()).toBeVisible()
+    })
+
+    test('selecting an existing route after adding a new one goes back to read-only', async ({ workspacePage: page }) => {
+        await openRoutesEditor(page)
+        await page.locator('routes-editor button[title="Add new route"]').click()
+        await expect(page.getByTestId('exrail-palette')).toBeVisible()
+
+        await page.locator('routes-editor nav[aria-label="Routes"] a').first().click()
+        await expect(page.getByTestId('exrail-edit-toggle')).toHaveText('Edit')
+        await expect(page.getByTestId('exrail-palette')).toBeHidden()
     })
 })

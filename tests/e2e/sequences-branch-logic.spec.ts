@@ -25,7 +25,7 @@
  * Run: pnpm test:e2e --grep "Sequences branch logic"
  */
 
-import { test, expect } from './fixtures'
+import { test, expect, enterEditMode } from './fixtures'
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -103,6 +103,7 @@ async function seedAndSelectSequence(page: import('@playwright/test').Page, file
  * (`dropdown: <current value>`) avoids that ambiguity entirely.
  */
 async function pickDropdownOption(page: import('@playwright/test').Page, currentLabel: string, newLabel: string) {
+    await enterEditMode(page)
     await page.getByRole('button', { name: `dropdown: ${currentLabel}`, exact: false }).click()
     const menuItem = page.locator('.blocklyMenu .blocklyMenuItem', { hasText: newLabel })
     await expect(menuItem).toBeVisible()
@@ -116,6 +117,7 @@ async function pickDropdownOption(page: import('@playwright/test').Page, current
  * blocked until one exists.
  */
 async function setHatAlias(page: import('@playwright/test').Page, value: string) {
+    await enterEditMode(page)
     await page.getByRole('button', { name: /^Edit text:/ }).click()
     await page.keyboard.press('Control+A')
     if (value) await page.keyboard.type(value)

@@ -325,3 +325,12 @@ test.describe('Sequences Editor', () => {
         await expect(page.locator('div.monaco-editor')).not.toContainText('type: Sequence')
     })
 })
+
+test.describe('Sequences editor — block canvas edit mode', () => {
+    test('a newly added sequence opens in edit mode; an existing one opens read-only', async ({ workspacePage: page }) => {
+        await openSequencesEditor(page)
+        await addSequence(page)
+        await expect(page.getByTestId('exrail-edit-toggle')).toHaveText('Done editing')
+        await expect(page.getByTestId('exrail-palette')).toBeVisible()
+    })
+})

@@ -103,7 +103,7 @@ describe('EventHandlersEditorCustomElement.addEventHandler', () => {
         expect(state.eventHandlers).toMatchObject([{ command: 'ONRAILSYNCON', text: 'ONRAILSYNCON\nDONE' }])
         expect(state.syncAll).toHaveBeenCalled()
         expect(editor.selectedIndex).toBe(0)
-        expect(editor.blockCanvas.reload).toHaveBeenCalledWith('ONRAILSYNCON\nDONE')
+        expect(editor.blockCanvas.reload).toHaveBeenCalledWith('ONRAILSYNCON\nDONE', true)
     })
 
     it('seeds a number param to 0 when nothing else provides a default', () => {

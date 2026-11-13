@@ -23,7 +23,7 @@ export class RoutesEditorCustomElement {
     private _userChoseTab = false
     rawEditor: any = null
     /** Ref to the mounted exrail-block-canvas — reused across route selections (see its reload() doc comment), so a selection change must explicitly push the new body into it. */
-    blockCanvas: { reload(body: string): void; refreshSize(): void } | null = null
+    blockCanvas: { reload(body: string, edit?: boolean): void; refreshSize(): void } | null = null
     /** Ref to the per-row Raw Monaco editor — reused across row selections via switchModel(), same reasoning as blockCanvas above. */
     rowRawEditor: { flush(): string; switchModel(filename: string, value: string): void } | null = null
 
@@ -265,7 +265,7 @@ export class RoutesEditorCustomElement {
         this.state.routes = [...this.state.routes, { id: nextId, description: 'New Route', body: '', ...(this._newEntryFolder() ? { folder: this._newEntryFolder() } : {}) }]
         this.state.syncAll()
         this.selectedId = nextId
-        this.blockCanvas?.reload('')
+        this.blockCanvas?.reload('', true)
         this.rowRawSnapshot = this.selectedRouteText
         this.rowRawEditor?.switchModel(this.rowRawFilename, this.rowRawSnapshot)
     }

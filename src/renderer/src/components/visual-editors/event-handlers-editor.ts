@@ -42,7 +42,7 @@ export class EventHandlersEditorCustomElement {
     private _userChoseTab = false
     rawEditor: any = null
     /** Ref to the mounted exrail-block-canvas — reused across handler selections, so a selection change must explicitly push the new text into it (see reload()'s own doc comment on exrail-block-canvas.ts). */
-    blockCanvas: { reload(body: string): void; refreshSize(): void } | null = null
+    blockCanvas: { reload(body: string, edit?: boolean): void; refreshSize(): void } | null = null
     /** Ref to the per-row Raw Monaco editor — reused across row selections via switchModel(). */
     rowRawEditor: { flush(): string; switchModel(filename: string, value: string): void } | null = null
 
@@ -161,7 +161,11 @@ export class EventHandlersEditorCustomElement {
         this.rowRawEditor?.flush()
     }
 
+    /** True from addEventHandler() until the selection moves — a canvas mounting in that window opens in edit mode. */
+    newlyAdded = false
+
     selectEntry(idx: number): void {
+        this.newlyAdded = false
         this.rowRawEditor?.flush()
         this.selectedIndex = idx
         const h = this.state.eventHandlers[idx]
@@ -296,7 +300,8 @@ export class EventHandlersEditorCustomElement {
         this.state.syncAll()
         const newIndex = this.state.eventHandlers.length - 1
         this.selectedIndex = newIndex
-        this.blockCanvas?.reload(text)
+        this.newlyAdded = true
+        this.blockCanvas?.reload(text, true)
         this.rowRawSnapshot = text
         this.rowRawEditor?.switchModel(this.rowRawFilename, this.rowRawSnapshot)
     }
@@ -309,6 +314,7 @@ export class EventHandlersEditorCustomElement {
         this.state.eventHandlers = this.state.eventHandlers.filter((_, i) => i !== idx)
         this.state.syncAll()
         if (this.selectedIndex === idx) {
+            this.newlyAdded = false
             this.selectedIndex = this.state.eventHandlers.length > 0 ? Math.min(idx, this.state.eventHandlers.length - 1) : null
             const h = this.selectedHandler
             this.blockCanvas?.reload(h?.text ?? '')

@@ -83,7 +83,7 @@
 
                         <div if.bind="selectedTab === 'blocks'" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                             <exrail-block-canvas component.ref="blockCanvas" kind.bind="selectedHandler.command"
-                                initial-body.bind="selectedHandler.text" defined.bind="defined"
+                                initial-body.bind="selectedHandler.text" start-editing.bind="newlyAdded" defined.bind="defined"
                                 on-full-text-change.bind="makeFullTextChangeHandler(selectedIndex)"></exrail-block-canvas>
                         </div>
                         <!-- Content is seeded via a one-time binding — switchModel() is the sole channel
