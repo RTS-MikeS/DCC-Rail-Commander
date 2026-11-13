@@ -16,6 +16,8 @@ export interface SettingsDialogModel {
     strictCompile: boolean
     quickCompileEnabled: boolean
     strictAliases: boolean
+    reopenLastDevice: boolean
+    onReopenLastDeviceChange: (enabled: boolean) => void
     onAutoConnectChange: (enabled: boolean) => void
     onShowMonitorOnConnectChange: (enabled: boolean) => void
     onVerboseCompileChange: (enabled: boolean) => void
@@ -49,7 +51,9 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
     strictCompile = false
     quickCompileEnabled = true
     strictAliases = true
+    reopenLastDevice = true
 
+    reopenLastDeviceEl!: HTMLInputElement
     autoConnectEl!: HTMLInputElement
     showMonitorOnConnectEl!: HTMLInputElement
     verboseCompileEl!: HTMLInputElement
@@ -60,6 +64,7 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
     blocklySoundsEl!: HTMLInputElement
     autoCheckUpdatesEl!: HTMLInputElement
 
+    private sfReopenLastDevice?: CheckBox
     private sfAutoConnect?: CheckBox
     private sfShowMonitorOnConnect?: CheckBox
     private sfVerboseCompile?: CheckBox
@@ -79,9 +84,16 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
         this.strictCompile = model.strictCompile
         this.quickCompileEnabled = model.quickCompileEnabled
         this.strictAliases = model.strictAliases
+        this.reopenLastDevice = model.reopenLastDevice
     }
 
     attached(): void {
+        this.sfReopenLastDevice = new CheckBox({
+            checked: this.reopenLastDevice,
+            change: (args) => this.model.onReopenLastDeviceChange(args.checked),
+        })
+        this.sfReopenLastDevice.appendTo(this.reopenLastDeviceEl)
+
         this.sfAutoConnect = new CheckBox({
             checked: this.autoConnect,
             change: (args) => this.model.onAutoConnectChange(args.checked),
@@ -138,6 +150,8 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
     }
 
     detaching(): void {
+        this.sfReopenLastDevice?.destroy()
+        this.sfReopenLastDevice = undefined
         this.sfAutoConnect?.destroy()
         this.sfAutoConnect = undefined
         this.sfShowMonitorOnConnect?.destroy()

@@ -220,6 +220,7 @@ export class Startup {
     private markReady(toolchainReady = true): void {
         this.phase = 'ready'
         this.state.toolchainReady = toolchainReady
+        this.state.pendingReopenLastDevice = true
         this.router.load('home')
     }
 }

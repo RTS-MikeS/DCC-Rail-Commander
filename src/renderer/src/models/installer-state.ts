@@ -77,6 +77,13 @@ export class InstallerState {
      */
     pendingWizardOpenRoster = false
 
+    /**
+     * One-shot signal set by Startup once launch work finishes, so Home's binding() can reopen the
+     * last-used device (the `reopenLastDevice` preference) exactly once per app launch — not every
+     * time the user navigates back to Home from the workspace. Consumed (and cleared) by Home.
+     */
+    pendingReopenLastDevice = false
+
     reset(): void {
         this.toolchainReady = false
         this.selectedDevice = null

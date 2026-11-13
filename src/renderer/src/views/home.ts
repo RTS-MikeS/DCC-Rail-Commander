@@ -53,6 +53,30 @@ export class Home {
         await this.loadSavedConfigs()
     }
 
+    attached(): void {
+        // Navigating from inside binding() would re-enter the router while it is still
+        // completing the navigation to Home (blank screen) — so wait until Home is up.
+        setTimeout(() => void this.reopenLastDeviceOnLaunch(), 0)
+    }
+
+    /**
+     * Once per app launch (Startup sets the one-shot flag), jumps straight into the device the user
+     * was last working on, unless they turned the `reopenLastDevice` preference off (default on).
+     * Silently does nothing if there is no remembered device or it has since been removed.
+     */
+    private async reopenLastDeviceOnLaunch(): Promise<void> {
+        if (!this.state.pendingReopenLastDevice) return
+        this.state.pendingReopenLastDevice = false
+        try {
+            if ((await this.preferences.get<boolean>('reopenLastDevice')) === false) return
+            const lastId = await this.preferences.get<string>('lastOpenedConfigId')
+            const config = lastId ? this.state.savedConfigurations.find((c) => c.id === lastId) : undefined
+            if (config) await this.loadConfig(config)
+        } catch (err) {
+            console.warn('[home] could not reopen the last device:', err)
+        }
+    }
+
     private async loadSavedConfigs(): Promise<void> {
         try {
             const saved = await this.preferences.get('savedConfigurations') as SavedConfiguration[] | undefined

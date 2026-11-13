@@ -199,6 +199,8 @@ export class Workspace {
     private quickCompileRunning = false
     /** Persisted app-wide preference (default on) — mirrored onto configEditorState.strictAliases, which the turnout/roster/sensor/route/sequence editors actually consult. Loaded in binding(), toggled from the Settings dialog. */
     strictAliases = true
+    /** Persisted app-wide preference (default on) — reopen the last-used device at launch. Loaded in binding(), toggled from the Settings dialog. */
+    reopenLastDevice = true
     /** Live mirror of hasErrorMarkers(), kept current via onMarkersChanged() (see binding()/detaching()) — only consulted when strictCompile is on. */
     hasBlockingErrors = false
     /** Live mirror of filesWithErrorMarkers(), kept current via onMarkersChanged() — drives the error dot in the file list, independent of strictCompile. */
@@ -327,6 +329,8 @@ export class Workspace {
             return
         }
         await this.loadSavedConfigs()
+        this.rememberLastOpenedConfig()
+        this.reopenLastDevice = (await this.preferences.get<boolean>('reopenLastDevice')) ?? true
         await this.refreshConfigFilesFromDisk()
         this.configEditorState.loadFromInstallerState()
         if (this.state.pendingMigrationOnLoad) {
@@ -493,6 +497,17 @@ export class Workspace {
         if (idx !== -1) this.setActiveFile(idx)
     }
 
+    /** Records the active configuration as the one to reopen on next launch (see Home.reopenLastDeviceOnLaunch). */
+    private rememberLastOpenedConfig(): void {
+        if (this.state.activeConfigId) void this.preferences.set('lastOpenedConfigId', this.state.activeConfigId)
+    }
+
+    /** Persists the reopen-last-device-on-launch preference — called from the Settings dialog. */
+    setReopenLastDevice(enabled: boolean): void {
+        this.reopenLastDevice = enabled
+        void this.preferences.set('reopenLastDevice', enabled)
+    }
+
     /** Persists the auto-connect preference — called from the Settings dialog. */
     setAutoConnectMonitor(enabled: boolean): void {
         this.autoConnectMonitor = enabled
@@ -567,6 +582,8 @@ export class Workspace {
                 strictCompile: this.strictCompile,
                 quickCompileEnabled: this.quickCompileEnabled,
                 strictAliases: this.strictAliases,
+                reopenLastDevice: this.reopenLastDevice,
+                onReopenLastDeviceChange: (v: boolean) => this.setReopenLastDevice(v),
                 onAutoConnectChange: (v: boolean) => this.setAutoConnectMonitor(v),
                 onShowMonitorOnConnectChange: (v: boolean) => this.setShowMonitorOnConnect(v),
                 onVerboseCompileChange: (v: boolean) => this.setVerboseCompile(v),
@@ -1568,6 +1585,7 @@ export class Workspace {
         this.state.sourceFolder = config.sourceFolder ?? null
         this.state.configFiles = config.configFiles.map((f) => ({ ...f }))
         this.state.activeConfigId = config.id
+        this.rememberLastOpenedConfig()
         this.activeFileIndex = 0
         this.compileLog = ''
         this.compileTerminal?.reset()
