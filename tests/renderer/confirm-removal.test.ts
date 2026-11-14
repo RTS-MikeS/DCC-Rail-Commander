@@ -150,7 +150,7 @@ const cases: RemovalCase[] = [
             const editor = create<RosterEditorCustomElement>(RosterEditorCustomElement.prototype, {
                 dialogService, editBuffer: buffer, commitBuffer: vi.fn(),
             })
-            return { remove: () => editor.removeFunction(0), count: () => buffer.functions.length }
+            return { remove: () => editor.removeFunction(1), count: () => buffer.functions.length }
         },
     },
     {
@@ -164,7 +164,7 @@ const cases: RemovalCase[] = [
                     { name: 'Horn', isMomentary: true, noFunction: false },
                 ],
             })
-            return { remove: () => editor.removeGroupFunction(0), count: () => editor.groupFunctions.length }
+            return { remove: () => editor.removeGroupFunction(1), count: () => editor.groupFunctions.length }
         },
     },
     {
