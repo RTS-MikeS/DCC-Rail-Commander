@@ -102,10 +102,18 @@ export class UsbManager {
             })
 
             port.on('error', (err: Error) => {
+                console.error(`[usb] serial error on ${path} (${process.platform}-${process.arch}):`, err)
                 this.broadcastToRenderer('usb:error', { path, message: err.message })
             })
 
-            port.on('close', () => {
+            // serialport passes a `DisconnectedError` here when the OS/driver dropped the
+            // handle (as opposed to a normal close()) — surface it so a port that dies
+            // right after opening says why instead of just going quiet.
+            port.on('close', (err?: Error & { disconnected?: boolean }) => {
+                if (err) {
+                    console.error(`[usb] ${path} closed unexpectedly (${process.platform}-${process.arch}):`, err)
+                    this.broadcastToRenderer('usb:error', { path, message: `Port closed: ${err.message}` })
+                }
                 this.openPorts.delete(path)
                 this.broadcastToRenderer('usb:closed', { path })
             })
