@@ -15,7 +15,7 @@ import { join } from 'path'
 import { existsSync, mkdirSync } from 'fs'
 import { writeFile, readFile, readdir, mkdtemp, rm, cp } from 'fs/promises'
 import { tmpdir, cpus } from 'os'
-import { execFile, exec, spawn, type ChildProcess } from 'child_process'
+import { execFile, exec, spawn, spawnSync, type ChildProcess } from 'child_process'
 import { extract as tarExtract } from 'tar'
 import type { UsbManager } from './usb-manager'
 import {
@@ -104,7 +104,18 @@ export class PlatformIoService {
 
     /** Force-kills any in-flight quick-compile subprocess — called on app quit (see index.ts's `window-all-closed`), same pattern as `PythonRunner.killAll()`. */
     killQuickCompileProcesses(): void {
-        for (const child of this.quickCompileProcesses) child.kill()
+        for (const child of this.quickCompileProcesses) {
+            // `child.kill()` only ends `python -m platformio`; on Windows its `scons`
+            // grandchild survives as an orphan, still running and holding the scratch
+            // dir open (breaks cleanup of that dir). `taskkill /T` takes the whole tree.
+            if (process.platform === 'win32' && child.pid) {
+                try {
+                    spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true, timeout: 3000 })
+                    continue
+                } catch { /* fall through to a plain kill */ }
+            }
+            child.kill()
+        }
         this.quickCompileProcesses.clear()
     }
 
