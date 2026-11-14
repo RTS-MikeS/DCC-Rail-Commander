@@ -3,7 +3,7 @@
 
         <!-- Header -->
         <div>
-            <h1 class="text-xl font-semibold text-gray-900 dark:text-white" data-testid="overview-title">${deviceName}</h1>
+            <h1 class="text-xl font-semibold text-gray-900 dark:text-white" data-testid="overview-title">${deviceName}<span if.bind="projectName" class="ml-3 font-normal text-gray-500 dark:text-gray-400" data-testid="overview-project">${projectName}</span></h1>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 <span if.bind="productName">${productName}</span>
                 <span if.bind="productName && version"> · </span>

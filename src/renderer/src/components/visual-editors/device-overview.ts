@@ -37,6 +37,13 @@ export class DeviceOverviewCustomElement {
         return this.installer.selectedDevice?.name ?? ''
     }
 
+    /** The saved configuration's (project's) name; empty when it just repeats the device name. */
+    get projectName(): string {
+        const id = this.installer.activeConfigId
+        const name = id ? this.installer.savedConfigurations.find((c) => c.id === id)?.name ?? '' : ''
+        return name === this.deviceName ? '' : name
+    }
+
     get productName(): string {
         const key = this.installer.selectedProduct
         return key ? (productDetails[key]?.productName ?? key) : ''

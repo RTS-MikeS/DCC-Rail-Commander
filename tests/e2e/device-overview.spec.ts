@@ -10,6 +10,7 @@ test.describe('device overview', () => {
     test('lands on the overview with object counts for a loaded device', async ({ workspacePage: page }) => {
         await expect(page.getByTestId('device-overview')).toBeVisible()
         await expect(page.getByTestId('nav-overview')).toBeVisible()
+        await expect(page.getByTestId('overview-project')).toHaveText('E2E Test Layout')
 
         // The mock project seeds a roster and turnouts, so both must be non-zero and
         // the total must be at least their sum.
