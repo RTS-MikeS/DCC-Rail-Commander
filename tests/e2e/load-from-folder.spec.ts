@@ -176,7 +176,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await homePage.getByText('Load from Folder').first().click()
 
         // Should navigate to workspace — device picker dialog should NOT appear
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
         await expect(homePage.getByText('Select Your Board')).not.toBeVisible()
     })
 
@@ -188,8 +188,8 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await mockSelectDirectory(electronApp, sourceFolder)
         await homePage.getByText('Load from Folder').first().click()
 
-        await expect(homePage.getByText('Roster', { exact: true })).toBeVisible({ timeout: 10_000 })
-        await expect(homePage.getByText('Turnouts', { exact: true })).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByText('Roster', { exact: true }).first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByText('Turnouts', { exact: true }).first()).toBeVisible({ timeout: 10_000 })
     })
 
     test('roster entries from the source file are visible in the visual editor', async ({ electronApp, homePage, sourceFolder }) => {
@@ -242,7 +242,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await mockSelectDirectory(electronApp, sourceFolder)
         await homePage.getByText('Load from Folder').first().click()
 
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
     })
 
     test('unknown .h files are loaded alongside known files', async ({ electronApp, homePage, sourceFolder }) => {
@@ -267,7 +267,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await homePage.getByText('Load from Folder').first().click()
 
         // Device picker should NOT show — board is recognised by FQBN
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
         await expect(homePage.getByText('Select Your Board')).not.toBeVisible()
 
         // The reconciled port is written back to disk immediately by
@@ -290,7 +290,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await mockSelectDirectory(electronApp, sourceFolder)
 
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         // Force the config.h Raw view to actually load its (stale) cached content
         // before rescanning, same as a real session where the user has already
@@ -345,7 +345,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await mockSelectDirectory(electronApp, sourceFolder)
 
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         const rescannedDevice: DetectedBoardInfo = { ...MOCK_DEVICE, port: '/dev/ttyACM9' }
         await mockListBoards(electronApp, [rescannedDevice])
@@ -366,7 +366,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await homePage.getByRole('button', { name: 'DCC Rail Commander' }).click()
         await expect(homePage.getByText('Recent Devices')).toBeVisible({ timeout: 10_000 })
         await homePage.getByText(basename(sourceFolder), { exact: true }).first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         // The port badge must reflect the rescanned port, not the one the config was created with.
         await expect(homePage.getByTestId('port-badge')).toContainText('/dev/ttyACM9')
@@ -415,7 +415,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         }])
 
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await expect(homePage.getByTestId('port-badge')).toHaveAttribute('title', /Device connected/, { timeout: 5_000 })
         // The Monitor should have opened itself — no manual "Monitor" click.
@@ -433,7 +433,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await mockSerialPorts(electronApp, [])
 
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await expect(homePage.getByTestId('port-badge')).toHaveAttribute('title', /not detected/, { timeout: 5_000 })
         await expect(homePage.getByText('Device Monitor', { exact: true })).not.toBeVisible()
@@ -452,7 +452,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         }])
 
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await expect(homePage.getByText('Device Monitor', { exact: true })).toBeVisible({ timeout: 5_000 })
 
@@ -468,7 +468,7 @@ test.describe('Load from Folder — device header present in config.h', () => {
         await homePage.getByRole('button', { name: 'DCC Rail Commander' }).click()
         await expect(homePage.getByText('Recent Devices')).toBeVisible({ timeout: 10_000 })
         await homePage.getByText(basename(sourceFolder), { exact: true }).first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await expect(homePage.getByTestId('port-badge')).toHaveAttribute('title', /Device connected/, { timeout: 5_000 })
         await expect(homePage.getByText('Device Monitor', { exact: true })).not.toBeVisible()
@@ -497,7 +497,7 @@ test.describe('Load from Folder — validation', () => {
 
         // Should remain on home screen
         await expect(homePage.getByText('Load from Folder').first()).toBeVisible()
-        await expect(homePage.getByText('config.h').first()).not.toBeVisible()
+        await expect(homePage.getByTestId('nav-overview')).not.toBeVisible()
     })
 
     test('cancelling the folder picker leaves the home screen unchanged', async ({ electronApp, homePage }) => {
@@ -510,7 +510,7 @@ test.describe('Load from Folder — validation', () => {
         await homePage.getByText('Load from Folder').first().click()
 
         await expect(homePage.getByText('Load from Folder').first()).toBeVisible({ timeout: 3_000 })
-        await expect(homePage.getByText('config.h').first()).not.toBeVisible()
+        await expect(homePage.getByTestId('nav-overview')).not.toBeVisible()
     })
 
 })
@@ -550,7 +550,7 @@ test.describe('Load from Folder — device picker dialog', () => {
 
         await homePage.getByRole('button', { name: 'Use This Board' }).click()
 
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
     })
 
     test('"Continue without device" still navigates to workspace', async ({ electronApp, homePage, sourceFolder }) => {
@@ -563,7 +563,7 @@ test.describe('Load from Folder — device picker dialog', () => {
 
         await homePage.getByRole('button', { name: 'Continue without device' }).click()
 
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
     })
 
     test('device picker shows driver troubleshooting info when no boards are detected', async ({ electronApp, homePage, sourceFolder }) => {
@@ -597,7 +597,7 @@ test.describe('Load from Folder — device picker dialog', () => {
 
         // Should remain on home screen — no workspace navigation
         await expect(homePage.getByText('Load from Folder').first()).toBeVisible({ timeout: 5_000 })
-        await expect(homePage.getByText('config.h').first()).not.toBeVisible()
+        await expect(homePage.getByTestId('nav-overview')).not.toBeVisible()
     })
 
     test('confirming a board injects device header into config.h immediately', async ({ electronApp, homePage, sourceFolder }) => {
@@ -612,7 +612,7 @@ test.describe('Load from Folder — device picker dialog', () => {
         // whichever board happens to be preselected by default.
         await homePage.getByText('Arduino Mega 2560').click()
         await homePage.getByRole('button', { name: 'Use This Board' }).click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         // loadFromFolder() writes the injected device header back to
         // sourceFolder immediately — no Save click needed.
@@ -633,7 +633,7 @@ test.describe('Load from Folder — device picker dialog', () => {
         await homePage.getByText('Load from Folder').first().click()
         await expect(homePage.getByText('Select Your Board')).toBeVisible({ timeout: 8_000 })
         await homePage.getByRole('button', { name: 'Use This Board' }).click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         // The device header is written back to disk immediately by
         // loadFromFolder() itself — no Save click needed.
@@ -648,7 +648,7 @@ test.describe('Load from Folder — device picker dialog', () => {
         await homePage.getByText('Load from Folder').first().click()
 
         // Picker should be skipped; workspace loads directly
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
         await expect(homePage.getByText('Select Your Board')).not.toBeVisible()
     })
 
@@ -677,7 +677,7 @@ test.describe('Load from Folder — migration detection', () => {
         await mockSelectDirectory(electronApp, sourceFolder)
         await homePage.getByText('Load from Folder').first().click()
 
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
         await expect(homePage.locator('.e-toast-warning')).not.toBeVisible()
     })
 
@@ -693,7 +693,7 @@ test.describe('Load from Folder — save writes back to source folder', () => {
 
         await mockSelectDirectory(electronApp, sourceFolder)
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await homePage.locator('.e-toast-warning').click().catch(() => undefined)
         // Save now opens the Changes dialog for review; click through its own
@@ -714,7 +714,7 @@ test.describe('Load from Folder — save writes back to source folder', () => {
 
         await mockSelectDirectory(electronApp, sourceFolder)
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await homePage.getByText('Roster', { exact: true }).first().click()
         await homePage.locator('#roster-treeview li').filter({ hasText: 'Thomas' }).first().locator('.e-fullrow').click()
@@ -741,7 +741,7 @@ test.describe('Load from Folder — save writes back to source folder', () => {
 
         await mockSelectDirectory(electronApp, sourceFolder)
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await homePage.getByText('Roster', { exact: true }).first().click()
         await homePage.locator('#roster-treeview li').filter({ hasText: 'Thomas' }).first().locator('.e-fullrow').click()
@@ -769,7 +769,7 @@ test.describe('Load from Folder — save writes back to source folder', () => {
 
         await mockSelectDirectory(electronApp, sourceFolder)
         await homePage.getByText('Load from Folder').first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await homePage.getByText('Roster', { exact: true }).first().click()
         await homePage.locator('#roster-treeview li').filter({ hasText: 'Thomas' }).first().locator('.e-fullrow').click()
@@ -791,7 +791,7 @@ test.describe('Load from Folder — save writes back to source folder', () => {
         await expect(homePage.getByText('Recent Devices')).toBeVisible({ timeout: 10_000 })
 
         await homePage.getByText(basename(sourceFolder), { exact: true }).first().click()
-        await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+        await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
         await homePage.getByText('Roster', { exact: true }).first().click()
         await homePage.locator('#roster-treeview li').filter({ hasText: 'Thomas' }).first().locator('.e-fullrow').click()
@@ -833,7 +833,7 @@ test.describe('Load from Folder — internal sketch path setup', () => {
             await homePage.getByText('Load from Folder').first().click()
 
             // Workspace should load successfully
-            await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+            await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
 
             // binding() fires a fire-and-forget loadVersions(), which shells out to a
             // real `git pull`/`git tag` with cwd = repoPath (inside reposDir) — see
@@ -895,7 +895,7 @@ test.describe('Load from Folder — internal sketch path setup', () => {
             await mockSelectDirectory(electronApp, sourceFolder)
             await homePage.getByText('Load from Folder').first().click()
 
-            await expect(homePage.getByText('config.h').first()).toBeVisible({ timeout: 10_000 })
+            await expect(homePage.getByTestId('nav-overview')).toBeVisible({ timeout: 10_000 })
             await expect(homePage.getByText('Loading…')).not.toBeVisible({ timeout: 10_000 })
 
             // Tracked in the editor with their friendly names (file-configs.ts).

@@ -50,7 +50,7 @@ export class Workspace {
     compileTerminal?: CompileOutputTerminalCustomElement
 
     // ── Left-nav section (Throttle vs Configuration vs Accessories) ──────────
-    activeSection: 'throttle' | 'config' | 'accessories' = 'config'
+    activeSection: 'overview' | 'throttle' | 'config' | 'accessories' = 'overview'
 
     /** Throttle is only reachable while the selected device is live at its port. */
     get showThrottleSection(): boolean {
@@ -105,6 +105,12 @@ export class Workspace {
     selectGeneralWifi(): void {
         const idx = this.generalWifiFileIndex
         if (idx !== -1) this.setActiveFile(idx)
+    }
+
+    /** Landing page: object counts across every config file. Shown whenever a device is loaded. */
+    selectOverview(): void {
+        this.activeFile && this.syncContent()
+        this.activeSection = 'overview'
     }
 
     selectAccessoriesSection(): void {
@@ -1587,6 +1593,7 @@ export class Workspace {
         this.state.activeConfigId = config.id
         this.rememberLastOpenedConfig()
         this.activeFileIndex = 0
+        this.activeSection = 'overview'
         this.compileLog = ''
         this.compileTerminal?.reset()
         this.compileSuccess = null

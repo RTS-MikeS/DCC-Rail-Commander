@@ -265,6 +265,15 @@
                     </div>
                 </div>
 
+                <!-- Overview — landing page with object counts -->
+                <div click.trigger="selectOverview()" data-testid="nav-overview"
+                    class="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors border-l-2"
+                    class.bind="activeSection === 'overview'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-gray-900 dark:text-white'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-900/5 dark:hover:bg-white/5'">
+                    <span class="truncate flex-1">Overview</span>
+                </div>
+
                 <!-- Device Settings — tree parent (General + WiFi / Accessories / Startup) -->
                 <div click.trigger="toggleDeviceSettings()"
                     class="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors border-l-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-900/5 dark:hover:bg-white/5">
@@ -369,7 +378,10 @@
             <div if.bind="activeSection === 'accessories'" class="flex flex-col flex-1 overflow-hidden" style="min-height:0;">
                 <accessories-editor component.ref="accessoriesPanel" class="flex flex-col flex-1"></accessories-editor>
             </div>
-            <div if.bind="!(activeSection === 'throttle' && showThrottleSection) && activeSection !== 'accessories'" class="flex flex-col flex-1 overflow-hidden" style="min-height:0;">
+            <div if.bind="activeSection === 'overview'" class="flex flex-col flex-1 overflow-hidden" style="min-height:0;">
+                <device-overview class="flex flex-col flex-1"></device-overview>
+            </div>
+            <div if.bind="activeSection !== 'overview' && !(activeSection === 'throttle' && showThrottleSection) && activeSection !== 'accessories'" class="flex flex-col flex-1 overflow-hidden" style="min-height:0;">
                 <file-editor-panel component.ref="filePanel" active-file-index.bind="activeFileIndex"
                     class="flex flex-col flex-1"></file-editor-panel>
             </div>

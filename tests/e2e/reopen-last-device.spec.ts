@@ -43,12 +43,12 @@ test.describe('open last device on startup', () => {
         test.use({ preferences: { lastOpenedConfigId: 'e2e-test-config' } })
 
         test('launches straight into the last-used device', async ({ page }) => {
-            await expect(page.getByText('Roster', { exact: true })).toBeVisible({ timeout: 20_000 })
+            await expect(page.getByText('Roster', { exact: true }).first()).toBeVisible({ timeout: 20_000 })
             await expect(page.getByText('Recent Devices')).toHaveCount(0)
         })
 
         test('the Settings toggle is on and can be turned off', async ({ page, launched }) => {
-            await expect(page.getByText('Roster', { exact: true })).toBeVisible({ timeout: 20_000 })
+            await expect(page.getByText('Roster', { exact: true }).first()).toBeVisible({ timeout: 20_000 })
             await page.getByTestId('settings-button').click()
             const toggle = page.getByTestId('settings-reopen-last-device')
             await expect(toggle).toBeChecked()

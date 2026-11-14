@@ -38,6 +38,7 @@ import { ConfigHEditorCustomElement } from './components/visual-editors/config-h
 import { AutomationEditorCustomElement } from './components/visual-editors/automation-editor'
 import { StartupEditorCustomElement } from './components/visual-editors/startup-editor'
 import { AccessoriesEditorCustomElement } from './components/visual-editors/accessories-editor'
+import { DeviceOverviewCustomElement } from './components/visual-editors/device-overview'
 import { FileEditorPanelCustomElement } from './components/visual-editors/file-editor-panel'
 import { CompileProgressCustomElement } from './components/compile-progress'
 import { CompileOutputTerminalCustomElement } from './components/compile-output-terminal'
@@ -113,6 +114,7 @@ new Aurelia()
         AutomationEditorCustomElement,
         StartupEditorCustomElement,
         AccessoriesEditorCustomElement,
+        DeviceOverviewCustomElement,
         FileEditorPanelCustomElement,
         SensorsEditorCustomElement,
         SignalsEditorCustomElement,

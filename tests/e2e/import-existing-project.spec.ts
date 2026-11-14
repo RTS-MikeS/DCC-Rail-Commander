@@ -164,7 +164,7 @@ test.describe('Import Existing Project', () => {
         await homePage.getByTestId('import-summary-continue-button').click()
 
         // Navigates to workspace once the import completes.
-        await expect(homePage.getByText('Roster', { exact: true })).toBeVisible({ timeout: 15_000 })
+        await expect(homePage.getByText('Roster', { exact: true }).first()).toBeVisible({ timeout: 15_000 })
 
         // Destination folder actually has the merged, canonical files.
         const destFiles = readdirSync(destFolder)
@@ -224,7 +224,7 @@ test.describe('Import Existing Project', () => {
 
         await mockSelectDirectory(electronApp, destFolder)
         await homePage.getByTestId('import-summary-continue-button').click()
-        await expect(homePage.getByText('Roster', { exact: true })).toBeVisible({ timeout: 15_000 })
+        await expect(homePage.getByText('Roster', { exact: true }).first()).toBeVisible({ timeout: 15_000 })
 
         // The choice made on the summary dialog is reflected for this project...
         await homePage.getByTestId('settings-button').click()

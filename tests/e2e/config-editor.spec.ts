@@ -37,7 +37,7 @@ async function openStartupRaw(page: import('@playwright/test').Page) {
 }
 
 async function openIOExpanderConfig(page: import('@playwright/test').Page) {
-    await page.getByText('myConfig.h', { exact: true }).first().click()
+    await page.getByTestId('nav-general-wifi').click()
     await expect(page.locator('config-h-editor')).toBeVisible()
 }
 

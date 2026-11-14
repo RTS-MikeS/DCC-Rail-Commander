@@ -346,7 +346,7 @@ export async function navigateToWorkspace(app: ElectronApplication): Promise<Pag
     }).catch(() => undefined)
     await expect(page.getByText('E2E Test Layout')).toBeVisible({ timeout: 15_000 })
     await page.getByText('E2E Test Layout').click()
-    await expect(page.getByText('Roster', { exact: true })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText('Roster', { exact: true }).first()).toBeVisible({ timeout: 10_000 })
     return page
 }
 
@@ -780,9 +780,8 @@ async function navigateToIOExpanderWorkspace(app: ElectronApplication): Promise<
     }).catch(() => undefined)
     await expect(page.getByText('E2E Test Layout')).toBeVisible({ timeout: 15_000 })
     await page.getByText('E2E Test Layout').click()
-    // IOExpander has no Roster; wait for the config file tab instead.
-    // Use .first() because 'myConfig.h' also appears in the file content area.
-    await expect(page.getByText('myConfig.h').first()).toBeVisible({ timeout: 10_000 })
+    // IOExpander has no Roster; wait for the Overview landing page instead.
+    await expect(page.getByTestId('device-overview')).toBeVisible({ timeout: 10_000 })
     return page
 }
 

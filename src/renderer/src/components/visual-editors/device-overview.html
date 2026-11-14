@@ -1,0 +1,48 @@
+<div class="flex-1 overflow-y-auto p-6" data-testid="device-overview">
+    <div class="max-w-4xl mx-auto flex flex-col gap-6">
+
+        <!-- Header -->
+        <div>
+            <h1 class="text-xl font-semibold text-gray-900 dark:text-white" data-testid="overview-title">${deviceName}</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                <span if.bind="productName">${productName}</span>
+                <span if.bind="productName && version"> · </span>
+                <span if.bind="version" class="font-mono">${version}</span>
+            </p>
+        </div>
+
+        <!-- Total -->
+        <div if.bind="hasObjects"
+            class="flex items-baseline gap-2 pb-4 border-b border-gray-200 dark:border-white/10">
+            <span class="text-4xl font-bold text-gray-900 dark:text-white" data-testid="overview-total">${totalObjects}</span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">objects defined in this configuration</span>
+        </div>
+
+        <!-- Empty state -->
+        <p if.bind="hasObjects && isEmpty" class="text-sm text-gray-500 dark:text-gray-400">
+            Nothing defined yet. Pick a category below to add your first object.
+        </p>
+
+        <!-- Cards -->
+        <div if.bind="hasObjects" class="grid gap-3" style="grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));">
+            <button repeat.for="card of cards" type="button" click.trigger="open(card)"
+                data-testid="overview-card-${card.key}"
+                title="Open ${card.label}"
+                class="text-left rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-blue-500/60 transition-colors p-4 flex flex-col gap-1 border-l-4"
+                class.bind="card.count === 0 ? 'opacity-60' : ''"
+                style.bind="'border-left-color:' + card.accent">
+                <span class="text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400">${card.label}</span>
+                <span class="text-3xl font-bold text-gray-900 dark:text-white" data-testid="overview-count-${card.key}">${card.count}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">${card.description}</span>
+                <span if.bind="card.folders > 0" class="text-xs text-gray-400 dark:text-gray-500">
+                    ${card.folders} ${card.folders === 1 ? 'folder' : 'folders'}
+                </span>
+            </button>
+        </div>
+
+        <!-- Non-CommandStation products -->
+        <p if.bind="!hasObjects" class="text-sm text-gray-500 dark:text-gray-400">
+            Use <strong>General + WiFi</strong> in the left sidebar to configure this device.
+        </p>
+    </div>
+</div>
