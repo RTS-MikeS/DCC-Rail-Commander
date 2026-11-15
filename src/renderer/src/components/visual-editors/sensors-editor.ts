@@ -84,11 +84,12 @@ export class SensorsEditorCustomElement {
 
     rawSnapshot = ''
 
-    /** Keeps the right pane useful: pick the first sensor when nothing valid is selected. */
+    /** Keeps the right pane useful: pick the first top-level sensor when nothing valid is selected. */
     private _ensureSelection(): void {
         if (this.selectedFolder) return
         if (this.selectedIndex < 0 || this.selectedIndex >= this.state.sensors.length) {
-            this.selectedIndex = this.state.sensors.length > 0 ? 0 : -1
+            // Only a top-level entry: opening one inside a folder would expand that folder in the tree.
+            this.selectedIndex = this.state.sensors.findIndex(x => !x.folder)
         }
     }
 

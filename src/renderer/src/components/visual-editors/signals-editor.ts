@@ -69,11 +69,12 @@ export class SignalsEditorCustomElement {
     removeFolder = (path: string): void => this.state.deleteFolderFrom('signals', path)
     moveToFolder = (idx: number, folder: string): void => this.state.moveToFolder('signals', idx, folder)
 
-    /** Keeps the right pane useful: pick the first signal when nothing valid is selected. */
+    /** Keeps the right pane useful: pick the first top-level signal when nothing valid is selected. */
     private _ensureSelection(): void {
         if (this.selectedFolder) return
         if (this.selectedIndex < 0 || this.selectedIndex >= this.state.signals.length) {
-            this.selectedIndex = this.state.signals.length > 0 ? 0 : -1
+            // Only a top-level entry: opening one inside a folder would expand that folder in the tree.
+            this.selectedIndex = this.state.signals.findIndex(x => !x.folder)
         }
     }
 

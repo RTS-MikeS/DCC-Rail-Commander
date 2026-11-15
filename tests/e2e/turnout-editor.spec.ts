@@ -805,6 +805,7 @@ test.describe('Turnout Editor — tree (folders and virtual parents)', () => {
             'SERVO_TURNOUT(201, 26, 410, 205, Fast, "Yard Entry")',
         ].join('\n'))
         await switchToVisual(page)
+        await page.getByTestId('tree-toggle-all').click() // trees start collapsed
 
         await expect(tree(page).locator('li[data-uid="folder:Yard"]')).toBeVisible({ timeout: 5_000 })
         const east = tree(page).locator('li[data-uid="folder:Yard/East"]')
@@ -857,6 +858,7 @@ test.describe('Turnout Editor — tree (folders and virtual parents)', () => {
             'SERVO_TURNOUT(200, 25, 410, 205, Slow, "Main Line Junction")',
         ].join('\n'))
         await switchToVisual(page)
+        await page.getByTestId('tree-toggle-all').click() // trees start collapsed
 
         const hub = turnoutRow(page, 'Yard Hub')
         await expect(hub).toBeVisible({ timeout: 5_000 })

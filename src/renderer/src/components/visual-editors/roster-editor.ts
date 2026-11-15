@@ -2,10 +2,10 @@ import { IObserverLocator, queueTask, resolve } from 'aurelia'
 import { loadTreeWidth, saveTreeWidth } from '../../utils/tree-width'
 import { IDialogService } from '@aurelia/dialog'
 import { TreeView, ContextMenu } from '@syncfusion/ej2-navigations'
-import type { BeforeOpenCloseMenuEventArgs, MenuEventArgs, NodeSelectEventArgs, DrawNodeEventArgs, DragAndDropEventArgs } from '@syncfusion/ej2-navigations'
+import type { BeforeOpenCloseMenuEventArgs, MenuEventArgs, NodeSelectEventArgs, DrawNodeEventArgs, DragAndDropEventArgs, NodeExpandEventArgs } from '@syncfusion/ej2-navigations'
 import { Splitter } from '@syncfusion/ej2-layouts'
 import { ConfigEditorState } from '../../models/config-editor-state'
-import { allFolderPaths, buildFolderTree, isValidFolderName, itemIndicesUnder, type FolderTreeNode } from '../../utils/folder-tree'
+import { allFolderPaths, buildFolderTree, compareLabels, isValidFolderName, itemIndicesUnder, type FolderTreeNode } from '../../utils/folder-tree'
 import type { TextInputResult } from '../dialogs/text-input-dialog'
 import type { Roster, RosterFunction, DefineGroup } from '../../utils/myAutomationParser'
 import {
@@ -18,6 +18,7 @@ import {
 import { ToastService } from '../../services/toast.service'
 import { MAX_FUNCTIONS } from '../../services/throttle.service'
 import { EditorDefaultViewService } from '../../services/editor-default-view.service'
+import { TreeExpansionService } from '../../services/tree-expansion.service'
 
 type ViewTab = 'visual' | 'raw'
 
@@ -224,6 +225,15 @@ export class RosterEditorCustomElement {
                     setTimeout(() => this._rebuildTree(), 100)
                 },
                 nodeSelected: (args: NodeSelectEventArgs) => this._onNodeSelected(args),
+                // Searching force-expands every match; that must not overwrite what the user opened.
+                nodeExpanded: (args: NodeExpandEventArgs) => {
+                    if (!this._searching) this.treeExpansion.setExpanded(RosterEditorCustomElement.TREE_KEY, String((args.nodeData as { id?: string }).id ?? ''), true)
+                    this._syncToggle()
+                },
+                nodeCollapsed: (args: NodeExpandEventArgs) => {
+                    if (!this._searching) this.treeExpansion.setExpanded(RosterEditorCustomElement.TREE_KEY, String((args.nodeData as { id?: string }).id ?? ''), false)
+                    this._syncToggle()
+                },
                 // Select the right-clicked node so _contextMenuNodeId is populated
                 // before the ContextMenu's beforeOpen fires (mirrors the SF docs pattern).
                 nodeClicked: (args) => {
@@ -237,6 +247,7 @@ export class RosterEditorCustomElement {
                 },
             })
             this.sfTree.appendTo(this.treeEl)
+            this._syncToggle()
             this._builtRoster = JSON.stringify(this.state.roster)
 
             // ContextMenu — second-arg constructor form per SF docs:
@@ -412,11 +423,15 @@ export class RosterEditorCustomElement {
                     macroName,
                     rosterIdx: '',
                     folderPath,
-                    expanded: true,
+                    expanded: this._isOpen(groupNodeId(macroName, folderPath)),
                     children: idxs.map(i => locoNode(i, macroName)),
                 })
             }
-            for (const i of loose) nodes.push(locoNode(i, ''))
+            // Alphabetical, groups ahead of loose locos (like folders ahead of entries).
+            const byName = (a: TreeNodeData, b: TreeNodeData): number => compareLabels(a.displayText, b.displayText)
+            nodes.sort(byName)
+            for (const n of nodes) n.children?.sort(byName)
+            nodes.push(...loose.map(i => locoNode(i, '')).sort(byName))
             return nodes
         }
 
@@ -436,7 +451,7 @@ export class RosterEditorCustomElement {
                         macroName: '',
                         rosterIdx: '',
                         folderPath: n.path,
-                        expanded: true,
+                        expanded: this._isOpen(`${FOLDER_PREFIX}${n.path}`),
                         children: convert(n.children, n.path),
                     })
                 } else {
@@ -466,7 +481,7 @@ export class RosterEditorCustomElement {
                 }
                 const children = prune(n.children ?? [])
                 if (children.length === 0) continue
-                out.push({ ...n, children, expanded: true })
+                out.push({ ...n, children, expanded: true }) // search: show every match
             }
             return out
         }
@@ -484,9 +499,58 @@ export class RosterEditorCustomElement {
         this._rebuildTree()
     }
 
-    /** Ids of every folder/group node at any depth - all start expanded. */
-    private _expandableIds(nodes: TreeNodeData[]): string[] {
-        return nodes.flatMap(n => (n.children ? [n.id, ...this._expandableIds(n.children)] : []))
+    /** Expanded state lives in TreeExpansionService (collapsed by default; remembered across rebuilds and, per the setting, launches). A search shows every match, so it expands everything without recording it. */
+    private readonly treeExpansion = resolve(TreeExpansionService)
+    private static readonly TREE_KEY = 'roster'
+
+    private _isOpen(id: string): boolean {
+        return this.treeExpansion.isExpanded(RosterEditorCustomElement.TREE_KEY, id)
+    }
+
+    private get _searching(): boolean {
+        return this.searchQuery.trim() !== ''
+    }
+
+    /** Ids of every folder/group node at any depth, or only those currently flagged expanded. */
+    private _expandableIds(nodes: TreeNodeData[], onlyExpanded = false): string[] {
+        return nodes.flatMap(n => (n.children ? [...(!onlyExpanded || n.expanded ? [n.id] : []), ...this._expandableIds(n.children, onlyExpanded)] : []))
+    }
+
+    /** Ancestor node ids of `id` (nearest first), or [] if it isn't in `nodes`. */
+    private _ancestorsOf(nodes: TreeNodeData[], id: string, trail: string[] = []): string[] | null {
+        for (const n of nodes) {
+            if (n.id === id) return trail.slice().reverse()
+            const found = n.children ? this._ancestorsOf(n.children, id, [...trail, n.id]) : null
+            if (found) return found
+        }
+        return null
+    }
+
+    /** True while any folder/group is open — drives the header toggle's icon. */
+    treeHasExpanded = false
+
+    private _syncToggle(): void {
+        this.treeHasExpanded = this._expandableIds(this._buildTreeData(), true).length > 0
+    }
+
+    /** Header toggle: close everything if anything is open, otherwise open everything. Remembered. */
+    toggleAllNodes(): void {
+        if (this.treeHasExpanded) this.collapseAllNodes()
+        else this.expandAllNodes()
+    }
+
+    private expandAllNodes(): void {
+        if (!this.sfTree) return
+        this.treeExpansion.setMany(RosterEditorCustomElement.TREE_KEY, this._expandableIds(this._buildTreeData()), true)
+        this.sfTree.expandAll()
+        this.treeHasExpanded = true
+    }
+
+    private collapseAllNodes(): void {
+        if (!this.sfTree) return
+        this.treeExpansion.collapseAll(RosterEditorCustomElement.TREE_KEY)
+        this.sfTree.collapseAll()
+        this.treeHasExpanded = false
     }
 
     private _inDrop = false
@@ -494,7 +558,16 @@ export class RosterEditorCustomElement {
     private _rebuildTree(): void {
         if (!this.sfTree || this._inDrop) return
         this._builtRoster = JSON.stringify(this.state.roster)
-        const data = this._buildTreeData()
+        let data = this._buildTreeData()
+        // Keep the selected loco visible: open its collapsed ancestors (and remember that), then rebuild.
+        if (!this._searching) {
+            const selected = this._currentSelectionNodeId()
+            const toOpen = (selected ? this._ancestorsOf(data, selected) ?? [] : []).filter(id => !this._isOpen(id))
+            if (toOpen.length > 0) {
+                this.treeExpansion.setMany(RosterEditorCustomElement.TREE_KEY, toOpen, true)
+                data = this._buildTreeData()
+            }
+        }
         this.sfTree.fields = {
             dataSource: data as any,
             id: 'id',
@@ -510,13 +583,15 @@ export class RosterEditorCustomElement {
         this.sfTree.refresh()
         this._suppressNodeSelected = false
 
-        // Expand all group nodes and restore selection
+        // Expand the nodes flagged expanded and restore selection
         // SF refresh() may not auto-apply expanded:true from data for new group nodes;
-        // explicitly expand all group nodes so child locos are visible.
-        const groupIds = this._expandableIds(this._buildTreeData())
+        // explicitly expand them so child locos are visible.
+        const groupIds = this._expandableIds(data, true)
         if (groupIds.length > 0) {
             this.sfTree.expandAll(groupIds)
         }
+
+        this.treeHasExpanded = groupIds.length > 0
 
         // Restore the selected node
         const nodeId = this._currentSelectionNodeId()
@@ -973,6 +1048,11 @@ export class RosterEditorCustomElement {
         if (targetId === draggedId) return
         const container = targetId ? this._containerOfNode(targetId) : ''
         if (container === null) return
+        // Open the destination folder (and its parents) so what was just moved in stays in view.
+        if (container) {
+            const parts = container.split('/')
+            this.treeExpansion.setMany(RosterEditorCustomElement.TREE_KEY, parts.map((_, i) => `${FOLDER_PREFIX}${parts.slice(0, i + 1).join('/')}`), true)
+        }
 
         if (draggedId.startsWith(FOLDER_PREFIX)) {
             const from = draggedId.slice(FOLDER_PREFIX.length)

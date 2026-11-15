@@ -62,8 +62,14 @@ export function allFolderPaths(items: FolderItem[], declared: string[]): string[
     return [...set].sort((a, b) => a.localeCompare(b))
 }
 
-/** Folders first (alphabetical), then items in file order; at every level. */
-export function buildFolderTree(items: FolderItem[], declared: string[]): FolderTreeNode[] {
+/** Case-insensitive, number-aware ("Loco 2" before "Loco 10") — the order every tree view lists entries in. */
+export const compareLabels = (a: string, b: string): number => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+
+/**
+ * Folders first (alphabetical), then items at every level — alphabetical by `labelOf(index)` when given,
+ * otherwise in file order.
+ */
+export function buildFolderTree(items: FolderItem[], declared: string[], labelOf?: (index: number) => string): FolderTreeNode[] {
     const folderNodes = new Map<string, FolderNode>()
     for (const path of allFolderPaths(items, declared)) {
         folderNodes.set(path, { kind: 'folder', path, name: folderName(path), children: [] })
@@ -77,6 +83,18 @@ export function buildFolderTree(items: FolderItem[], declared: string[]): Folder
         const leaf: ItemNode = { kind: 'item', index }
         ;(it.folder ? folderNodes.get(it.folder)?.children ?? roots : roots).push(leaf)
     })
+    if (labelOf) {
+        const sortLevel = (nodes: FolderTreeNode[]): void => {
+            // Folders were pushed first and stay there; only the items after them are reordered.
+            const firstItem = nodes.findIndex(n => n.kind === 'item')
+            if (firstItem !== -1) {
+                const sorted = (nodes.slice(firstItem) as ItemNode[]).sort((a, b) => compareLabels(labelOf(a.index), labelOf(b.index)) || a.index - b.index)
+                nodes.splice(firstItem, nodes.length - firstItem, ...sorted)
+            }
+            for (const n of nodes) if (n.kind === 'folder') sortLevel(n.children)
+        }
+        sortLevel(roots)
+    }
     return roots
 }
 

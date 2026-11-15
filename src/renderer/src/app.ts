@@ -8,6 +8,7 @@ import { BlocklySoundsService } from './services/blockly-sounds.service'
 import { EditorDefaultViewService } from './services/editor-default-view.service'
 import { AliasSortOrderService } from './services/alias-sort-order.service'
 import { UpdaterService } from './services/updater.service'
+import { TreeExpansionService } from './services/tree-expansion.service'
 
 @route({
     routes: [
@@ -26,6 +27,7 @@ export class App {
     private readonly editorDefaultView = resolve(EditorDefaultViewService)
     private readonly aliasSortOrder = resolve(AliasSortOrderService)
     private readonly updater = resolve(UpdaterService)
+    private readonly treeExpansion = resolve(TreeExpansionService)
     private _unsubCloseRequested: (() => void) | null = null
 
     bound(): void {
@@ -48,6 +50,7 @@ export class App {
         void this.blocklySounds.init()
         void this.editorDefaultView.init()
         void this.aliasSortOrder.init()
+        void this.treeExpansion.init()
         // Schedules its own delayed background check — never blocks startup.
         void this.updater.init()
     }

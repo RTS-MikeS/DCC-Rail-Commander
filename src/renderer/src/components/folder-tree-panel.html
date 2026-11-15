@@ -11,6 +11,13 @@
                     class="px-1.5 py-0.5 text-xs rounded text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Rename</button>
                 <button if.bind="selectedFolder && selectedIndex < 0" click.trigger="confirmDelete()" data-testid="delete-folder" title="Delete folder"
                     class="px-1.5 py-0.5 text-xs rounded text-red-500 hover:bg-red-500/10 transition-colors">Delete</button>
+                <button click.trigger="toggleAll()" data-testid="tree-toggle-all" title.bind="hasExpanded ? 'Collapse all' : 'Expand all'" aria-label.bind="hasExpanded ? 'Collapse all' : 'Expand all'"
+                            class="w-6 h-6 flex items-center justify-center rounded text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                                <path if.bind="!hasExpanded" d="M7 9l5-5 5 5M7 15l5 5 5-5"/>
+                                <path if.bind="hasExpanded" d="M7 5l5 5 5-5M7 19l5-5 5 5"/>
+                            </svg>
+                        </button>
                 <button click.trigger="promptNewFolder()" data-testid="new-folder" title="New folder"
                     class="w-6 h-6 flex items-center justify-center rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm transition-colors">&#128193;</button>
                 <button if.bind="addTitle" click.trigger="onAddItem()" title.bind="addTitle"

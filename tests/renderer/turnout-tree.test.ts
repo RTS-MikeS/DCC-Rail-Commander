@@ -125,6 +125,20 @@ describe('buildTurnoutTree', () => {
         ])
     })
 
+    it('with a label function, sorts turnouts alphabetically (folders still first, virtual children too)', () => {
+        const labels: Record<number, string> = { 1: 'Zulu', 2: 'Hub', 3: 'beta', 4: 'Alpha', 5: 'Mike' }
+        const turnouts = [servo(1), virt(2), servo(3, { parentId: 2 }), servo(4, { parentId: 2 }), servo(5, { folder: 'Yard' })]
+        const idx = (i: number): string => labels[turnouts[i].id]
+        expect(render(buildTurnoutTree(turnouts, [], idx), turnouts)).toEqual([
+            'Yard/',
+            '  #5',
+            '#2',
+            '  #4',
+            '  #3',
+            '#1',
+        ])
+    })
+
     it('shows declared empty folders', () => {
         expect(render(buildTurnoutTree([], ['Empty/Sub']), [])).toEqual(['Empty/', '  Sub/'])
     })

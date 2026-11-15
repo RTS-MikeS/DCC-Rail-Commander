@@ -1,0 +1,52 @@
+<template>
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+        <div class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 rounded-xl shadow-2xl max-w-md w-full mx-4"
+            data-testid="add-alias-dialog">
+            <div class="p-5 flex flex-col gap-4">
+                <div class="flex flex-col gap-1">
+                    <h2 class="text-base font-semibold text-gray-900 dark:text-white">Add Alias</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">A friendly name for the ID of a Roster, Turnout, Sensor, Route, Sequence or Automation entry.</p>
+                </div>
+
+                <div class="flex gap-3">
+                    <div class="flex flex-col gap-1.5 w-36">
+                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Type</label>
+                        <input ref="typeEl" type="text" data-testid="new-alias-type" />
+                    </div>
+                    <div class="flex flex-col gap-1.5 flex-1 min-w-0">
+                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">ID</label>
+                        <input ref="idEl" type="text" data-testid="new-alias-id" />
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="add-alias-name" class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Name</label>
+                    <input ref="nameEl" id="add-alias-name" type="text" value.bind="name" placeholder="NAME" data-testid="new-alias-name"
+                        input.trigger="clearError()" keydown.trigger="onKeydown($event)"
+                        class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm font-mono placeholder-gray-400 dark:placeholder-gray-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors" />
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                    <label for="add-alias-folder" class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Folder</label>
+                    <select id="add-alias-folder" data-testid="new-alias-folder" value.bind="folder" change.trigger="onFolderChange()"
+                        class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors">
+                        <option value="">(none)</option>
+                        <option repeat.for="f of folderOptions" value.bind="f">${f}</option>
+                    </select>
+                </div>
+
+                <p if.bind="errorMessage" data-testid="add-alias-error" class="text-xs text-red-600 dark:text-red-400">${errorMessage}</p>
+            </div>
+            <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-white/10">
+                <button click.trigger="cancel()"
+                    class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white bg-gray-900/5 dark:bg-white/5 hover:bg-gray-900/10 dark:hover:bg-white/10 rounded-lg transition-colors">
+                    Cancel
+                </button>
+                <button click.trigger="add()"
+                    class="px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors bg-blue-600 hover:bg-blue-500">
+                    Add Alias
+                </button>
+            </div>
+        </div>
+    </div>
+</template>

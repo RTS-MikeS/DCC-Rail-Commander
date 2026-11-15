@@ -14,6 +14,7 @@ import { allFolderPaths, buildTurnoutTree, isValidFolderName, locationOf, wouldC
 import { ToastService } from '../../services/toast.service'
 import { UsbService } from '../../services/usb.service'
 import { EditorDefaultViewService } from '../../services/editor-default-view.service'
+import { TreeExpansionService } from '../../services/tree-expansion.service'
 import type { ServoCalibrationResult } from '../dialogs/servo-calibration-dialog'
 import type { TurnoutCloneResult } from '../dialogs/turnout-clone-dialog'
 import type { TextInputResult } from '../dialogs/text-input-dialog'
@@ -565,8 +566,9 @@ export class TurnoutEditorCustomElement {
     private _contextMenuNodeId: string | null = null
     /** True while we set selectedNodes programmatically, to keep nodeSelected from re-entering. */
     private _suppressNodeSelected = false
-    /** Nodes the user collapsed; everything else renders expanded (also across rebuilds). */
-    private readonly _collapsed = new Set<string>()
+    /** Expanded nodes live in TreeExpansionService (collapsed by default; remembered across rebuilds and, per the setting, launches). */
+    private readonly treeExpansion = resolve(TreeExpansionService)
+    private static readonly TREE_KEY = 'turnouts'
     /** child node id → parent node id, from the last _buildTreeData(); used to reveal a selection. */
     private readonly _parentOf = new Map<string, string>()
     /** Fingerprint of everything the tree displays — rebuild only when it changes (commits that change nothing must not refresh the tree mid-click). */
@@ -588,8 +590,8 @@ export class TurnoutEditorCustomElement {
             allowDragAndDrop: true,
             drawNode: (args: DrawNodeEventArgs) => this._renderNodeContent(args.node, args.nodeData as unknown as TurnoutTreeData),
             nodeSelected: (args: NodeSelectEventArgs) => this._onNodeSelected(args),
-            nodeExpanded: (args: NodeExpandEventArgs) => this._collapsed.delete(String((args.nodeData as { id?: string }).id ?? '')),
-            nodeCollapsed: (args: NodeExpandEventArgs) => this._collapsed.add(String((args.nodeData as { id?: string }).id ?? '')),
+            nodeExpanded: (args: NodeExpandEventArgs) => { this.treeExpansion.setExpanded(TurnoutEditorCustomElement.TREE_KEY, String((args.nodeData as { id?: string }).id ?? ''), true); this._syncToggle() },
+            nodeCollapsed: (args: NodeExpandEventArgs) => { this.treeExpansion.setExpanded(TurnoutEditorCustomElement.TREE_KEY, String((args.nodeData as { id?: string }).id ?? ''), false); this._syncToggle() },
             nodeDragging: (args: DragAndDropEventArgs) => this._onNodeDragging(args),
             nodeDragStop: (args: DragAndDropEventArgs) => {
                 // We apply the move to state ourselves (the tree is rebuilt from it) — letting SF
@@ -600,7 +602,10 @@ export class TurnoutEditorCustomElement {
         })
         this.sfTree.appendTo(this.treeEl)
         this._treeSignature = this._computeTreeSignature()
+        this._buildTreeData() // refreshes _parentOf for the reveal below
+        this._revealSelection()
         this._expandBranches(this._buildTreeData())
+        this._syncToggle()
         this._restoreSelection()
 
         this.sfContextMenu = new ContextMenu({
@@ -681,14 +686,14 @@ export class TurnoutEditorCustomElement {
                 id,
                 text: node.kind === 'folder' ? node.name : this.getListLabel(turnouts[node.index]),
                 nodeType: node.kind,
-                expanded: !this._collapsed.has(id),
+                expanded: this.treeExpansion.isExpanded(TurnoutEditorCustomElement.TREE_KEY, id),
                 path: node.kind === 'folder' ? node.path : '',
                 index: node.kind === 'turnout' ? node.index : -1,
                 childCount: node.kind === 'folder' ? this._countTurnouts(node) : children.length,
                 children: children.length > 0 ? children : undefined,
             }
         }
-        return buildTurnoutTree(turnouts, this.state.turnoutFolders).map(n => convert(n, null))
+        return buildTurnoutTree(turnouts, this.state.turnoutFolders, i => this.getListLabel(turnouts[i])).map(n => convert(n, null))
     }
 
     private _countTurnouts(node: TurnoutTreeNode): number {
@@ -705,12 +710,7 @@ export class TurnoutEditorCustomElement {
         if (!this.sfTree) return
         let data = this._buildTreeData()
         // Make sure the selected node is visible: expand its collapsed ancestors, then rebuild once more.
-        const selected = this._currentSelectionNodeId()
-        let revealed = false
-        for (let p = selected ? this._parentOf.get(selected) : undefined; p; p = this._parentOf.get(p)) {
-            if (this._collapsed.delete(p)) revealed = true
-        }
-        if (revealed) data = this._buildTreeData()
+        if (this._revealSelection()) data = this._buildTreeData()
         this.sfTree.fields = {
             dataSource: data as unknown as { [key: string]: Object }[],
             id: 'id',
@@ -724,10 +724,52 @@ export class TurnoutEditorCustomElement {
         this.sfTree.refresh()
         this._suppressNodeSelected = false
         this._expandBranches(data)
+        this._syncToggle()
         this._restoreSelection()
     }
 
-    /** SF's refresh() doesn't reliably honour `expanded` from the data, so expand every branch the user hasn't collapsed explicitly (same workaround as roster-editor). */
+    /** Marks the selected node's ancestors expanded (needs `_parentOf` from a fresh _buildTreeData()). Returns true if any were collapsed. */
+    private _revealSelection(): boolean {
+        const selected = this._currentSelectionNodeId()
+        const toOpen: string[] = []
+        for (let p = selected ? this._parentOf.get(selected) : undefined; p; p = this._parentOf.get(p)) {
+            if (!this.treeExpansion.isExpanded(TurnoutEditorCustomElement.TREE_KEY, p)) toOpen.push(p)
+        }
+        if (toOpen.length === 0) return false
+        this.treeExpansion.setMany(TurnoutEditorCustomElement.TREE_KEY, toOpen, true)
+        return true
+    }
+
+    /** True while any branch is open — drives the header toggle's icon. */
+    treeHasExpanded = false
+
+    private _syncToggle(): void {
+        this.treeHasExpanded = new Set(this._parentOf.values()).size > 0
+            && [...new Set(this._parentOf.values())].some(id => this.treeExpansion.isExpanded(TurnoutEditorCustomElement.TREE_KEY, id))
+    }
+
+    /** Header toggle: close everything if anything is open, otherwise open everything. Remembered. */
+    toggleAllNodes(): void {
+        if (this.treeHasExpanded) this.collapseAllNodes()
+        else this.expandAllNodes()
+    }
+
+    private expandAllNodes(): void {
+        if (!this.sfTree) return
+        const ids = [...this._parentOf.values()]
+        this.treeExpansion.setMany(TurnoutEditorCustomElement.TREE_KEY, ids, true)
+        this.sfTree.expandAll()
+        this.treeHasExpanded = true
+    }
+
+    private collapseAllNodes(): void {
+        if (!this.sfTree) return
+        this.treeExpansion.collapseAll(TurnoutEditorCustomElement.TREE_KEY)
+        this.sfTree.collapseAll()
+        this.treeHasExpanded = false
+    }
+
+    /** SF's refresh() doesn't reliably honour `expanded` from the data, so expand every branch marked expanded in the service (same workaround as roster-editor). */
     private _expandBranches(data: TurnoutTreeData[]): void {
         if (!this.sfTree) return
         const ids: string[] = []
@@ -912,6 +954,12 @@ export class TurnoutEditorCustomElement {
         const targetData = targetEl ? this.sfTree.getTreeData(targetEl.dataset.uid ?? '')?.[0] as { id?: string } | undefined : undefined
         const targetId = targetData?.id ?? null
         if (targetId === draggedId) return
+        // Open the drop destination so what was just moved in stays in view.
+        if (targetId) {
+            const open = [targetId]
+            for (let p = this._parentOf.get(targetId); p; p = this._parentOf.get(p)) open.push(p)
+            this.treeExpansion.setMany(TurnoutEditorCustomElement.TREE_KEY, open, true)
+        }
 
         if (draggedId.startsWith(FOLDER_PREFIX)) {
             const from = draggedId.slice(FOLDER_PREFIX.length)

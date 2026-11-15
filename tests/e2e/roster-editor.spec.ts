@@ -461,6 +461,7 @@ test.describe('Roster Editor', () => {
             'ROSTER(6, "Gordon", "LIGHT/HORN")',
         ].join('\n'))
         await switchToVisual(page)
+        await page.getByTestId('tree-toggle-all').click() // trees start collapsed
 
         const tree = page.locator('#roster-treeview')
         const folder = tree.locator('li').filter({ hasText: 'Yard' }).first()
@@ -494,6 +495,7 @@ test.describe('Roster Editor', () => {
             'ROSTER(5, "Percy", STEAM_F)',
         ].join('\n'))
         await switchToVisual(page)
+        await page.getByTestId('tree-toggle-all').click() // trees start collapsed
 
         const tree = page.locator('#roster-treeview')
         const sub = tree.locator('li').filter({ hasText: 'Amtrak' }).last().locator('.e-fullrow').first()
@@ -525,6 +527,7 @@ test.describe('Roster Editor', () => {
             'ROSTER(5, "Percy", STEAM_F)',
         ].join('\n'))
         await switchToVisual(page)
+        await page.getByTestId('tree-toggle-all').click() // trees start collapsed
         await page.locator('#roster-treeview li').filter({ hasText: 'Thomas' }).last().locator('.e-fullrow').first().click()
         await page.getByTestId('roster-folder').selectOption('Diesel/Amtrak')
         await switchToRaw(page)
@@ -542,6 +545,7 @@ test.describe('Roster Editor', () => {
             'ROSTER(5, "Percy", STEAM_F)',
         ].join('\n'))
         await switchToVisual(page)
+        await page.getByTestId('tree-toggle-all').click() // trees start collapsed
 
         const tree = page.locator('#roster-treeview')
         const group = await stableBox(tree.locator('li').filter({ hasText: 'Steam Engines' }).last().locator('.e-fullrow').first())
@@ -583,6 +587,7 @@ test.describe('Roster Editor', () => {
             'ROSTER(1973, "CSX #1973", CSX_1869_F)',
         ].join('\n'))
         await switchToVisual(page)
+        await page.getByTestId('tree-toggle-all').click() // trees start collapsed
 
         await page.waitForTimeout(1000)
         const tree = page.locator('#roster-treeview')

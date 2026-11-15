@@ -1,9 +1,10 @@
-import { bindable, resolve } from 'aurelia'
+import { bindable, resolve, INode } from 'aurelia'
 import { loadTreeWidth, saveTreeWidth } from '../utils/tree-width'
 import { IDialogService } from '@aurelia/dialog'
 import { buildFolderTree, isValidFolderName, itemIndicesUnder, type FolderItem, type FolderTreeNode } from '../utils/folder-tree'
 import { confirmAction } from '../utils/confirm-action'
 import { ToastService } from '../services/toast.service'
+import { TreeExpansionService } from '../services/tree-expansion.service'
 import type { TextInputResult } from './dialogs/text-input-dialog'
 
 interface TreeRow {
@@ -87,16 +88,85 @@ export class FolderTreePanelCustomElement {
         handle.addEventListener('pointercancel', up)
     }
 
-    /** Folder paths the user has collapsed (everything starts expanded). */
-    collapsed: string[] = []
+    private readonly treeExpansion = resolve(TreeExpansionService)
+    /** Entries are listed alphabetically by their label. */
+    private readonly _labelOf = (index: number): string => this.itemLabel(this.items[index], index)
+    private readonly host = resolve(INode) as HTMLElement
+
+    /** Folder paths currently expanded (everything starts collapsed). Mirrored into TreeExpansionService, keyed by `label`, so it survives editor switches and (per the setting) launches. Reassigned, never mutated, so the `rows` getter re-evaluates. */
+    expanded: string[] = []
     private _dragIndex = -1
+
+    binding(): void {
+        // The shared host-sizing rule makes custom elements grow to fill their flex parent, which would
+        // give this panel half the row (and push the editor pane away from it). Standalone, it keeps its
+        // own width; embedded in a Splitter pane it still fills the pane.
+        if (!this.embedded) {
+            this.host.style.flex = '0 0 auto'
+            this.host.style.width = 'auto'
+        }
+        this.expanded = this.treeExpansion.expandedIds(this.label)
+        if (this.selectedIndex >= 0) this._reveal(this.items[this.selectedIndex]?.folder ?? '', true)
+        else this._reveal(this.selectedFolder, false)
+    }
+
+    /** Opens `path`'s ancestors (and `path` itself when `includeSelf`) so a just-selected entry isn't hidden inside a collapsed folder. */
+    private _reveal(path: string, includeSelf: boolean): void {
+        if (!path) return
+        const parts = path.split('/')
+        const toOpen: string[] = []
+        for (let i = 1; i <= parts.length - (includeSelf ? 0 : 1); i++) {
+            const p = parts.slice(0, i).join('/')
+            if (!this.expanded.includes(p)) toOpen.push(p)
+        }
+        if (toOpen.length === 0) return
+        this.expanded = [...this.expanded, ...toOpen]
+        this.treeExpansion.setMany(this.label, toOpen, true)
+    }
+
+    selectedIndexChanged(index: number): void {
+        if (index >= 0) this._reveal(this.items[index]?.folder ?? '', true)
+    }
+
+    selectedFolderChanged(path: string): void {
+        this._reveal(path, false)
+    }
+
+    /** True while any folder is open — drives the header toggle's icon. */
+    get hasExpanded(): boolean {
+        return this.rows.some(r => r.kind === 'folder' && r.open)
+    }
+
+    toggleAll(): void {
+        if (this.hasExpanded) this.collapseAll()
+        else this.expandAll()
+    }
+
+    private expandAll(): void {
+        const paths: string[] = []
+        const walk = (nodes: FolderTreeNode[]): void => {
+            for (const n of nodes) {
+                if (n.kind !== 'folder') continue
+                paths.push(n.path)
+                walk(n.children)
+            }
+        }
+        walk(buildFolderTree(this.items, this.folders, this._labelOf))
+        this.expanded = paths
+        this.treeExpansion.setMany(this.label, paths, true)
+    }
+
+    private collapseAll(): void {
+        this.expanded = []
+        this.treeExpansion.collapseAll(this.label)
+    }
 
     get rows(): TreeRow[] {
         const out: TreeRow[] = []
         const walk = (nodes: FolderTreeNode[], depth: number): void => {
             for (const n of nodes) {
                 if (n.kind === 'folder') {
-                    const open = !this.collapsed.includes(n.path)
+                    const open = this.expanded.includes(n.path)
                     out.push({ kind: 'folder', key: `f:${n.path}`, depth, label: n.name, path: n.path, index: -1, count: itemIndicesUnder(this.items, n.path).length, open })
                     if (open) walk(n.children, depth + 1)
                 } else {
@@ -105,7 +175,7 @@ export class FolderTreePanelCustomElement {
                 }
             }
         }
-        walk(buildFolderTree(this.items, this.folders), 0)
+        walk(buildFolderTree(this.items, this.folders, this._labelOf), 0)
         return out
     }
 
@@ -130,7 +200,9 @@ export class FolderTreePanelCustomElement {
     }
 
     toggle(path: string): void {
-        this.collapsed = this.collapsed.includes(path) ? this.collapsed.filter(p => p !== path) : [...this.collapsed, path]
+        const open = !this.expanded.includes(path)
+        this.expanded = open ? [...this.expanded, path] : this.expanded.filter(p => p !== path)
+        this.treeExpansion.setExpanded(this.label, path, open)
     }
 
     isSelected(row: TreeRow): boolean {

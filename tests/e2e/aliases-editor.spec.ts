@@ -61,13 +61,21 @@ async function selectSfDropdown(page: import('@playwright/test').Page, inputTest
     await page.waitForTimeout(200)
 }
 
-/** Fills and submits the aliases editor's new-alias mini form: Name text input, Type dropdown, ID dropdown (labelled by the target object's name/description), then Add Alias. */
+/** Opens the Add Alias modal from the tree header's + button. */
+async function openAddAliasDialog(page: import('@playwright/test').Page) {
+    await page.locator('aliases-editor').getByTitle('Add alias').click()
+    await page.getByTestId('add-alias-dialog').waitFor({ state: 'visible', timeout: 5_000 })
+}
+
+/** Fills and submits the Add Alias modal: Name text input, Type dropdown, ID dropdown (labelled by the target object's name/description), then Add Alias. */
 async function addAlias(page: import('@playwright/test').Page, name: string, type: string, idLabel: string) {
-    const form = page.locator('aliases-editor [data-testid="new-alias-form"]')
-    await form.locator('input[placeholder="NAME"]').fill(name)
+    await openAddAliasDialog(page)
+    const dialog = page.getByTestId('add-alias-dialog')
+    await dialog.locator('input[placeholder="NAME"]').fill(name)
     await selectSfDropdown(page, 'new-alias-type', type)
     await selectSfDropdown(page, 'new-alias-id', idLabel)
-    await form.getByRole('button', { name: 'Add Alias' }).click()
+    await dialog.getByRole('button', { name: 'Add Alias' }).click()
+    await dialog.waitFor({ state: 'hidden', timeout: 5_000 })
 }
 
 // workspacePage seeds two turnouts (ids 200/201) and roster locos 3/5 — used
@@ -168,11 +176,34 @@ test.describe('Aliases Editor', () => {
         await expect(page.locator('div.monaco-editor')).toContainText('ALIAS(MAIN_SW, 201)')
     })
 
+    test('foldered aliases stay collapsed: nothing opens or gets selected inside a folder on its own', async ({ workspacePage: page }) => {
+        await openAliasesEditor(page)
+        await switchToRaw(page)
+        await setMonacoContent(page, [
+            '// @tree: Turnouts',
+            'ALIAS(JUNCTION_A, 200) // type: Turnout',
+            '// @tree: Roster',
+            'ALIAS(THOMAS, 3) // type: Roster',
+        ].join('\n'))
+        await switchToVisual(page)
+
+        await expect(page.locator('aliases-editor [data-testid="folder-row"]')).toHaveCount(2)
+        await expect(treeItems(page)).toHaveCount(0)
+        await expect(aliasRows(page)).toHaveCount(0)
+        // Folders list alphabetically.
+        await expect(page.locator('aliases-editor [data-testid="folder-row"]').first()).toContainText('Roster')
+
+        // The toggle opens everything; the entries inside are alphabetical too.
+        await page.getByTestId('tree-toggle-all').click()
+        await expect(treeItems(page)).toHaveText([/THOMAS/, /JUNCTION_A/])
+    })
+
     // ── Type -> ID dropdown: only real object IDs are offered, one alias per ID ─
 
     test('the ID picker only offers real object IDs, labelled by name/description', async ({ workspacePage: page }) => {
         // workspacePage seeds turnouts 200 ("Main Line Junction") and 201 ("Yard Entry").
         await openAliasesEditor(page)
+        await openAddAliasDialog(page)
         await selectSfDropdown(page, 'new-alias-type', 'Turnout')
         await page.locator('.e-ddl', { has: page.getByTestId('new-alias-id') }).click()
 
@@ -182,11 +213,14 @@ test.describe('Aliases Editor', () => {
 
     test('clicking Add Alias without selecting an ID is rejected with an error and not saved', async ({ workspacePage: page }) => {
         await openAliasesEditor(page)
-        const form = page.locator('aliases-editor [data-testid="new-alias-form"]')
-        await form.locator('input[placeholder="NAME"]').fill('MY_ALIAS')
-        await form.getByRole('button', { name: 'Add Alias' }).click()
+        await openAddAliasDialog(page)
+        const dialog = page.getByTestId('add-alias-dialog')
+        await dialog.locator('input[placeholder="NAME"]').fill('MY_ALIAS')
+        await dialog.getByRole('button', { name: 'Add Alias' }).click()
 
-        await expect(page.locator('aliases-editor').getByText(/Select a Roster ID/)).toBeVisible()
+        // The modal stays open and says what's missing.
+        await expect(dialog.getByText(/Select a Roster ID/)).toBeVisible()
+        await dialog.getByRole('button', { name: 'Cancel' }).click()
         await expect(page.getByText('0 entries')).toBeVisible()
 
         await switchToRaw(page)
@@ -208,8 +242,8 @@ test.describe('Aliases Editor', () => {
         await addAlias(page, 'FIRST_JUNCTION', 'Turnout', 'Main Line Junction')
         await expect(page.getByText('1 entries')).toBeVisible()
 
-        const form = page.locator('aliases-editor [data-testid="new-alias-form"]')
-        await form.locator('input[placeholder="NAME"]').fill('SECOND_JUNCTION')
+        await openAddAliasDialog(page)
+        await page.getByTestId('add-alias-dialog').locator('input[placeholder="NAME"]').fill('SECOND_JUNCTION')
         await selectSfDropdown(page, 'new-alias-type', 'Turnout')
         await page.locator('.e-ddl', { has: page.getByTestId('new-alias-id') }).click()
 
@@ -217,4 +251,36 @@ test.describe('Aliases Editor', () => {
         await expect(page.locator('li.e-list-item', { hasText: 'Main Line Junction' })).toHaveCount(0)
         await expect(page.locator('li.e-list-item', { hasText: 'Yard Entry' })).toBeVisible()
     })
+
+    test('a manually added alias is filed under its type folder by default, and the folder can be changed in the modal', async ({ workspacePage: page }) => {
+        await openAliasesEditor(page)
+        await openAddAliasDialog(page)
+        const dialog = page.getByTestId('add-alias-dialog')
+        await dialog.locator('input[placeholder="NAME"]').fill('JUNCTION_A')
+        await selectSfDropdown(page, 'new-alias-type', 'Turnout')
+        await expect(dialog.getByTestId('new-alias-folder')).toHaveValue('Turnouts')
+        await selectSfDropdown(page, 'new-alias-id', 'Main Line Junction')
+        await dialog.getByRole('button', { name: 'Add Alias' }).click()
+        await dialog.waitFor({ state: 'hidden', timeout: 5_000 })
+
+        await addAliasInFolder(page, 'YARD_B', 'Yard Entry', '')
+
+        await switchToRaw(page)
+        const raw = page.locator('div.monaco-editor')
+        await expect(raw).toContainText('@tree: Turnouts')
+        await expect(raw).toContainText('ALIAS(JUNCTION_A, 200)')
+        await expect(raw).toContainText('ALIAS(YARD_B, 201)')
+    })
 })
+
+/** Adds a Turnout alias, overriding the modal's folder choice ('' = no folder). */
+async function addAliasInFolder(page: import('@playwright/test').Page, name: string, idLabel: string, folder: string) {
+    await openAddAliasDialog(page)
+    const dialog = page.getByTestId('add-alias-dialog')
+    await dialog.locator('input[placeholder="NAME"]').fill(name)
+    await selectSfDropdown(page, 'new-alias-type', 'Turnout')
+    await selectSfDropdown(page, 'new-alias-id', idLabel)
+    await dialog.getByTestId('new-alias-folder').selectOption(folder)
+    await dialog.getByRole('button', { name: 'Add Alias' }).click()
+    await dialog.waitFor({ state: 'hidden', timeout: 5_000 })
+}

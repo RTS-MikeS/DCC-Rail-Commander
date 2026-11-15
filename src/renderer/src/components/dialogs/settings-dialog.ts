@@ -7,6 +7,7 @@ import { EditorDefaultViewService, type EditorViewMode } from '../../services/ed
 import { AliasSortOrderService, type AliasSortOrder } from '../../services/alias-sort-order.service'
 import { InstallerState } from '../../models/installer-state'
 import { UpdaterService } from '../../services/updater.service'
+import { TreeExpansionService } from '../../services/tree-expansion.service'
 
 export interface SettingsDialogModel {
     autoConnect: boolean
@@ -41,6 +42,7 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
     readonly aliasSortOrder = resolve(AliasSortOrderService)
     readonly installerState = resolve(InstallerState)
     readonly updater = resolve(UpdaterService)
+    readonly treeExpansion = resolve(TreeExpansionService)
 
     private model!: SettingsDialogModel
 
@@ -63,6 +65,7 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
     strictAliasesEl!: HTMLInputElement
     blocklySoundsEl!: HTMLInputElement
     autoCheckUpdatesEl!: HTMLInputElement
+    rememberTreeExpansionEl!: HTMLInputElement
 
     private sfReopenLastDevice?: CheckBox
     private sfAutoConnect?: CheckBox
@@ -74,6 +77,7 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
     private sfStrictAliases?: CheckBox
     private sfBlocklySounds?: CheckBox
     private sfAutoCheckUpdates?: CheckBox
+    private sfRememberTreeExpansion?: CheckBox
 
     activate(model: SettingsDialogModel): void {
         this.model = model
@@ -147,6 +151,12 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
             change: (args) => void this.updater.setAutoCheck(args.checked),
         })
         this.sfAutoCheckUpdates.appendTo(this.autoCheckUpdatesEl)
+
+        this.sfRememberTreeExpansion = new CheckBox({
+            checked: this.treeExpansion.remember,
+            change: (args) => void this.treeExpansion.setRemember(args.checked),
+        })
+        this.sfRememberTreeExpansion.appendTo(this.rememberTreeExpansionEl)
     }
 
     detaching(): void {
@@ -170,6 +180,8 @@ export class SettingsDialog implements IDialogCustomElementViewModel {
         this.sfBlocklySounds = undefined
         this.sfAutoCheckUpdates?.destroy()
         this.sfAutoCheckUpdates = undefined
+        this.sfRememberTreeExpansion?.destroy()
+        this.sfRememberTreeExpansion = undefined
     }
 
     /** Applies (and persists) the theme immediately — ThemeService is the source of truth, so there's no local mirrored field to keep in sync. */

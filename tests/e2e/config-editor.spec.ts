@@ -767,7 +767,8 @@ test.describe('Roster Editor — Visual TreeView', () => {
         await workspacePage.locator('.e-contextmenu li').filter({ hasText: 'Clone' }).click()
         // A #define chip should now appear in the tree (group node)
         await expect(workspacePage.locator('#roster-treeview .text-yellow-400').filter({ hasText: '#define' })).toBeVisible({ timeout: 5_000 })
-        // Expand the group if needed, then check for the cloned loco
+        // Groups start collapsed: expand them, then check for the cloned loco
+        await workspacePage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click()
         await expect(workspacePage.locator('#roster-treeview').getByText('Thomas (copy)')).toBeVisible({ timeout: 5_000 })
     })
 
@@ -820,6 +821,7 @@ test.describe('Roster Editor — Visual TreeView', () => {
 test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => {
     test('group node shows #define chip and friendly name', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         const tree = rosterGroupedPage.locator('#roster-treeview')
         await expect(tree.locator('.text-yellow-400').filter({ hasText: '#define' })).toBeVisible()
         await expect(tree.getByText('Steam Engines')).toBeVisible()
@@ -827,11 +829,13 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
 
     test('ungrouped loco appears as a root node', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         await expect(rosterGroupedPage.locator('#roster-treeview').getByText('Gordon')).toBeVisible()
     })
 
     test('clicking group node shows macro name label and friendly name input', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         await rosterGroupedPage.locator('#roster-treeview li').filter({ hasText: 'Steam Engines' }).first().locator('.e-fullrow').first().click()
         const detail = rosterGroupedPage.locator('roster-editor')
         await expect(detail.getByText('STEAM_F')).toBeVisible()
@@ -842,6 +846,7 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
 
     test('editing friendly name is reflected in raw view', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         await rosterGroupedPage.locator('#roster-treeview li').filter({ hasText: 'Steam Engines' }).first().locator('.e-fullrow').first().click()
         const friendlyInput = rosterGroupedPage.locator('roster-editor input[placeholder*="display name"]')
         await friendlyInput.fill('Narrow Gauge')
@@ -854,6 +859,7 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
 
     test('context menu on group node shows Rename Group but not Clone or Delete', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         const groupRow = rosterGroupedPage.locator('#roster-treeview li').filter({ hasText: 'Steam Engines' }).first()
         await groupRow.locator('.e-fullrow').first().click({ button: 'right' })
         await rosterGroupedPage.waitForTimeout(300)
@@ -864,6 +870,7 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
 
     test('clicking a grouped loco shows shared-function info card', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         // Thomas is a CHILD node nested inside the Steam Engines group li; navigate into the group's ul
         const steamGroupLi = rosterGroupedPage.locator('#roster-treeview li').filter({ hasText: 'Steam Engines' }).first()
         await steamGroupLi.locator('ul li').filter({ hasText: 'Thomas' }).first().locator('.e-fullrow').click()
@@ -873,6 +880,7 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
 
     test('"Edit function list" button switches detail to group editor', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         const steamGroupLi = rosterGroupedPage.locator('#roster-treeview li').filter({ hasText: 'Steam Engines' }).first()
         await steamGroupLi.locator('ul li').filter({ hasText: 'Thomas' }).first().locator('.e-fullrow').click()
         await rosterGroupedPage.locator('roster-editor').getByText('→ Edit function list').click()
@@ -882,6 +890,7 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
 
     test('switching between loco, group, and loco nodes updates the detail panel each time', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         const tree = rosterGroupedPage.locator('#roster-treeview')
         const detail = rosterGroupedPage.locator('roster-editor')
         const steamGroupLi = tree.locator('li').filter({ hasText: 'Steam Engines' }).first()
@@ -903,6 +912,7 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
 
     test('macro name edit panel appears when Edit button clicked', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         const tree = rosterGroupedPage.locator('#roster-treeview')
         const detail = rosterGroupedPage.locator('roster-editor')
 
@@ -923,6 +933,7 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
 
     test('custom functions section appears for grouped locos', async ({ rosterGroupedPage }) => {
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         const tree = rosterGroupedPage.locator('#roster-treeview')
         const detail = rosterGroupedPage.locator('roster-editor')
 
@@ -978,6 +989,7 @@ test.describe('Roster Editor — TreeView grouping (pre-grouped roster)', () => 
         // Verifies that the existing grouped locos load correctly with the detail panel
         // This serves as a regression test for parsing and display stability
         await openRosterEditor(rosterGroupedPage)
+        await rosterGroupedPage.locator('[data-testid="tree-toggle-all"][title="Expand all"]').click() // groups start collapsed
         const tree = rosterGroupedPage.locator('#roster-treeview')
         const detail = rosterGroupedPage.locator('roster-editor')
 

@@ -19,6 +19,15 @@ describe('folder-tree', () => {
         expect(yard.children[0].children).toEqual([{ kind: 'item', index: 0 }])
     })
 
+    it('with a label function, lists items alphabetically (numbers in natural order) after the folders, at every level', () => {
+        const labels = ['pear', 'Apple', 'item 10', 'item 2', 'zebra']
+        const list = [{ folder: 'F' }, { folder: 'F' }, {}, {}, { folder: 'F' }]
+        const tree = buildFolderTree(list, ['F/Sub'], i => labels[i])
+        expect(tree.map(n => (n.kind === 'item' ? labels[n.index] : n.name))).toEqual(['F', 'item 2', 'item 10'])
+        const f = tree[0] as any
+        expect(f.children.map((c: any) => (c.kind === 'item' ? labels[c.index] : c.name))).toEqual(['Sub', 'Apple', 'pear', 'zebra'])
+    })
+
     it('itemIndicesUnder is recursive and empty folder means all', () => {
         expect(itemIndicesUnder(items, 'Yard')).toEqual([0, 1])
         expect(itemIndicesUnder(items, undefined)).toEqual([0, 1, 2])

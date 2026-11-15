@@ -35,6 +35,13 @@
                     <div class="flex items-center px-3 py-2.5 border-b border-gray-200 dark:border-white/10">
                         <span
                             class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex-1">Turnouts</span>
+                        <button click.trigger="toggleAllNodes()" data-testid="tree-toggle-all" title.bind="treeHasExpanded ? 'Collapse all' : 'Expand all'" aria-label.bind="treeHasExpanded ? 'Collapse all' : 'Expand all'"
+                            class="w-6 h-6 mr-1.5 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                                <path if.bind="!treeHasExpanded" d="M7 9l5-5 5 5M7 15l5 5 5-5"/>
+                                <path if.bind="treeHasExpanded" d="M7 5l5 5 5-5M7 19l5-5 5 5"/>
+                            </svg>
+                        </button>
                         <button click.trigger="promptNewFolder()" data-testid="new-turnout-folder"
                             class="w-6 h-6 mr-1.5 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 flex items-center justify-center transition-colors"
                             title="New folder">

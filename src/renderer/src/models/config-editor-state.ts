@@ -245,6 +245,16 @@ function extractManagedBlockBody(content: string, tag: string): string {
  * It mirrors changes back to InstallerState.configFiles so the existing
  * workspace save flow continues to work without modification.
  */
+/** Default folder for an alias that's created automatically (e.g. from a roster or turnout entry), by the type of object it names. */
+export const ALIAS_TYPE_FOLDERS: Record<AliasTargetType, string> = {
+    Roster: 'Roster',
+    Turnout: 'Turnouts',
+    Sensor: 'Sensors',
+    Route: 'Routes',
+    Sequence: 'Sequences',
+    Automation: 'Automations',
+}
+
 export class ConfigEditorState {
     private readonly installerState = resolve(InstallerState)
     private readonly aliasSortOrder = resolve(AliasSortOrderService)
@@ -1126,7 +1136,9 @@ ${body}`
         if (updateIndex !== -1) {
             aliases[updateIndex] = { ...aliases[updateIndex], name: trimmedName, value: String(nextId), aliasType: normalizedType }
         } else {
-            aliases.push({ name: trimmedName, value: String(nextId), aliasType: normalizedType })
+            // Auto-created aliases are filed under a folder named for their type; the user can move them afterwards.
+            const folder = normalizedType ? ALIAS_TYPE_FOLDERS[normalizedType] : undefined
+            aliases.push({ name: trimmedName, value: String(nextId), aliasType: normalizedType, ...(folder ? { folder } : {}) })
         }
 
         this.aliases = aliases

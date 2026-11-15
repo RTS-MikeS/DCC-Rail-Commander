@@ -108,7 +108,7 @@ describe('ConfigEditorState.syncAliasForId', () => {
         expect(result).toEqual({ ok: true })
         expect(state.aliases).toEqual([
             { name: 'YARD_TURNOUT', value: '1', aliasType: 'Turnout' },
-            { name: 'THOMAS', value: '1', aliasType: 'Roster' },
+            { name: 'THOMAS', value: '1', aliasType: 'Roster', folder: 'Roster' },
         ])
     })
 
@@ -135,7 +135,25 @@ describe('ConfigEditorState.syncAliasForId', () => {
         )
 
         expect(result).toEqual({ ok: true })
-        expect(state.aliases).toEqual([{ name: 'AMBIG_ALIAS', value: '3', aliasType: 'Turnout' }])
+        expect(state.aliases).toEqual([{ name: 'AMBIG_ALIAS', value: '3', aliasType: 'Turnout', folder: 'Turnouts' }])
+    })
+
+    it('files an auto-created alias under a folder named for its type, but leaves an existing alias where it is', () => {
+        const base = {
+            hasChanges: false,
+            _syncToInstallerState: vi.fn(),
+            _refreshVirtualEventRefs: vi.fn(),
+            validateAliasTargetId: vi.fn().mockReturnValue({ ok: true }),
+            getObjectIdReferences: vi.fn().mockReturnValue([]),
+        }
+        const created = { ...base, aliases: [] as unknown[] }
+        ConfigEditorState.prototype.syncAliasForId.call(created, 7, 7, 'SIDING', 'Sensor', '')
+        expect(created.aliases).toEqual([{ name: 'SIDING', value: '7', aliasType: 'Sensor', folder: 'Sensors' }])
+
+        // The user moved it; a later rename must not pull it back into the type folder.
+        const moved = { ...base, aliases: [{ name: 'SIDING', value: '7', aliasType: 'Sensor', folder: 'Mine' }] }
+        ConfigEditorState.prototype.syncAliasForId.call(moved, 7, 7, 'SIDING_2', 'Sensor', 'SIDING')
+        expect(moved.aliases).toEqual([{ name: 'SIDING_2', value: '7', aliasType: 'Sensor', folder: 'Mine' }])
     })
 
     describe('strictAliases', () => {
@@ -194,7 +212,7 @@ describe('ConfigEditorState.syncAliasForId', () => {
             )
 
             expect(result).toEqual({ ok: true })
-            expect(state.aliases).toEqual([{ name: 'YARD_TURNOUT', value: '1', aliasType: 'Turnout' }])
+            expect(state.aliases).toEqual([{ name: 'YARD_TURNOUT', value: '1', aliasType: 'Turnout', folder: 'Turnouts' }])
         })
 
     })

@@ -11,7 +11,7 @@
 
 import type { Turnout } from './myAutomationParser'
 import { normalizeFolderPath } from './myAutomationParser'
-import { addFolder as addFolderGeneric, allFolderPaths as allFolderPathsGeneric, deleteFolder as deleteFolderGeneric, isValidFolderName as isValidFolderNameGeneric, renameFolder as renameFolderGeneric } from './folder-tree'
+import { compareLabels, addFolder as addFolderGeneric, allFolderPaths as allFolderPathsGeneric, deleteFolder as deleteFolderGeneric, isValidFolderName as isValidFolderNameGeneric, renameFolder as renameFolderGeneric } from './folder-tree'
 
 export interface FolderTreeNode {
     kind: 'folder'
@@ -69,7 +69,7 @@ function effectiveParentIndex(turnouts: Turnout[], index: number): number {
 }
 
 /** Builds the tree: folders first (alphabetical), then turnouts in file order; at every level. */
-export function buildTurnoutTree(turnouts: Turnout[], declaredFolders: string[]): TurnoutTreeNode[] {
+export function buildTurnoutTree(turnouts: Turnout[], declaredFolders: string[], labelOf?: (index: number) => string): TurnoutTreeNode[] {
     const folderNodes = new Map<string, FolderTreeNode>()
     for (const path of allFolderPaths(turnouts, declaredFolders)) {
         folderNodes.set(path, { kind: 'folder', path, name: folderName(path), children: [] })
@@ -88,6 +88,18 @@ export function buildTurnoutTree(turnouts: Turnout[], declaredFolders: string[])
         else if (t.parentId === undefined && t.folder && folderNodes.has(t.folder)) folderNodes.get(t.folder)!.children.push(leafNodes[index])
         else roots.push(leafNodes[index])
     })
+    if (labelOf) {
+        // Folders stay first at each level; turnouts (and a virtual turnout's children) go alphabetical.
+        const sortLevel = (nodes: TurnoutTreeNode[]): void => {
+            const firstLeaf = nodes.findIndex(n => n.kind === 'turnout')
+            if (firstLeaf !== -1) {
+                const sorted = (nodes.slice(firstLeaf) as TurnoutLeafNode[]).sort((a, b) => compareLabels(labelOf(a.index), labelOf(b.index)) || a.index - b.index)
+                nodes.splice(firstLeaf, nodes.length - firstLeaf, ...sorted)
+            }
+            for (const n of nodes) sortLevel(n.children)
+        }
+        sortLevel(roots)
+    }
     return roots
 }
 

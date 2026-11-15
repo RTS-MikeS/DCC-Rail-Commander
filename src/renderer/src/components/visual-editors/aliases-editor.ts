@@ -1,20 +1,11 @@
 import { resolve } from 'aurelia'
 import { IDialogService } from '@aurelia/dialog'
 import { confirmAction } from '../../utils/confirm-action'
-import { DropDownList } from '@syncfusion/ej2-dropdowns'
 import { ConfigEditorState } from '../../models/config-editor-state'
 import type { AliasEntry, AliasTargetType } from '../../utils/myAutomationParser'
 import { allFolderPaths } from '../../utils/folder-tree'
+import type { AddAliasResult } from '../dialogs/add-alias-dialog'
 import { EditorDefaultViewService } from '../../services/editor-default-view.service'
-
-const ALIAS_TYPE_OPTIONS: { text: string; value: AliasTargetType }[] = [
-    { text: 'Roster', value: 'Roster' },
-    { text: 'Turnout', value: 'Turnout' },
-    { text: 'Sensor', value: 'Sensor' },
-    { text: 'Route', value: 'Route' },
-    { text: 'Sequence', value: 'Sequence' },
-    { text: 'Automation', value: 'Automation' },
-]
 
 export class AliasesEditorCustomElement {
     readonly state = resolve(ConfigEditorState)
@@ -26,13 +17,6 @@ export class AliasesEditorCustomElement {
     rawEditor: any = null
     errorMessage = ''
     private lastValidAliases: AliasEntry[] = []
-
-    readonly aliasTypeOptions = ALIAS_TYPE_OPTIONS
-
-    newAliasTypeEl!: HTMLInputElement
-    newAliasIdEl!: HTMLInputElement
-    private sfNewAliasType?: DropDownList
-    private sfNewAliasId?: DropDownList
 
     private cloneAliases(aliases: AliasEntry[]): AliasEntry[] {
         return aliases.map(alias => ({ ...alias }))
@@ -48,44 +32,6 @@ export class AliasesEditorCustomElement {
         this._ensureSelection()
         try { console.debug('AliasesEditor attached') } catch { /* ignore */ }
         this.lastValidAliases = this.cloneAliases(this.state.aliases)
-
-        this.sfNewAliasType = new DropDownList({
-            dataSource: [...ALIAS_TYPE_OPTIONS],
-            fields: { text: 'text', value: 'value' },
-            value: this.newAliasType,
-            change: (args) => {
-                this.newAliasType = (args.value as AliasTargetType) ?? 'Roster'
-                this.newAliasId = null
-                this.newAliasError = ''
-                if (this.sfNewAliasId) {
-                    this.sfNewAliasId.dataSource = this.state.getAvailableAliasTargetIds(this.newAliasType)
-                    this.sfNewAliasId.value = null
-                }
-            },
-        })
-        this.sfNewAliasType.appendTo(this.newAliasTypeEl)
-
-        this.sfNewAliasId = new DropDownList({
-            dataSource: this.state.getAvailableAliasTargetIds(this.newAliasType),
-            fields: { text: 'label', value: 'id' },
-            placeholder: 'Select an ID…',
-            // Refreshed lazily right before the popup opens — an alias added/removed
-            // elsewhere doesn't otherwise notify this SF widget that its dataSource
-            // (which IDs are still unaliased) is stale. Same pattern as throttle-panel's
-            // roster picker.
-            open: () => {
-                if (this.sfNewAliasId) this.sfNewAliasId.dataSource = this.state.getAvailableAliasTargetIds(this.newAliasType)
-            },
-            change: (args) => {
-                this.newAliasId = typeof args.value === 'number' ? args.value : null
-            },
-        })
-        this.sfNewAliasId.appendTo(this.newAliasIdEl)
-    }
-
-    detaching(): void {
-        this.sfNewAliasType?.destroy()
-        this.sfNewAliasId?.destroy()
     }
 
     setTab(t: 'visual' | 'raw') {
@@ -119,44 +65,29 @@ export class AliasesEditorCustomElement {
         }
     }
 
-    // ── New-alias mini form ────────────────────────────────────────────────
-    // Kept separate from state.aliases until both fields validate, so a
-    // still-being-typed name/value pair is never mid-air invalid inside the
-    // live editor list (which every row's blur handler re-validates in full).
-    newAliasName = ''
-    newAliasType: AliasTargetType = 'Roster'
-    newAliasId: number | null = null
-    newAliasError = ''
+    // ── Add alias (modal) ──────────────────────────────────────────────────
+    /** Opens the Add Alias modal; the alias it returns is committed and selected here. */
+    openAddDialog = async (): Promise<void> => {
+        const { dialog } = await this.dialogService.open({
+            component: () => import('../dialogs/add-alias-dialog').then(m => m.AddAliasDialog).catch(() => null),
+        })
+        const result = await dialog.closed
+        if (result.status !== 'ok' || !result.value) return
+        this.addAlias((result.value as AddAliasResult).alias)
+    }
 
-    addAlias(): void {
-        if (this.newAliasId == null) {
-            this.newAliasError = `Select a ${this.newAliasType} ID to alias.`
-            return
-        }
-        const folder = this.selectedIndex >= 0 ? this.state.aliases[this.selectedIndex]?.folder ?? '' : this.selectedFolder
-        const candidate: AliasEntry = { name: this.newAliasName.trim(), value: String(this.newAliasId), aliasType: this.newAliasType, ...(folder ? { folder } : {}) }
+    private addAlias(candidate: AliasEntry): void {
         const normalized = this.state.normalizeAliases([...this.state.aliases, candidate])
         if (!normalized.ok) {
-            this.newAliasError = normalized.reason
+            this.errorMessage = normalized.reason
             return
         }
-        this.newAliasError = ''
+        this.errorMessage = ''
         this.state.aliases = normalized.aliases
         this.state.syncAll()
         this.lastValidAliases = this.cloneAliases(this.state.aliases)
         this.selectedFolder = ''
         this.selectedIndex = this.state.aliases.findIndex(a => a.name === candidate.name)
-        this.newAliasName = ''
-        this.newAliasId = null
-        if (this.sfNewAliasId) {
-            this.sfNewAliasId.dataSource = this.state.getAvailableAliasTargetIds(this.newAliasType)
-            this.sfNewAliasId.value = null
-        }
-    }
-
-    handleNewAliasKeydown(event: KeyboardEvent): boolean {
-        if (event.key === 'Enter') { this.addAlias(); return false }
-        return true
     }
 
     async removeAlias(idx: number) {
@@ -214,11 +145,12 @@ export class AliasesEditorCustomElement {
     removeFolder = (path: string): void => this.state.deleteFolderFrom('aliases', path)
     moveToFolder = (idx: number, folder: string): void => this.state.moveToFolder('aliases', idx, folder)
 
-    /** Keeps the right pane useful: pick the first alias when nothing valid is selected. */
+    /** Keeps the right pane useful: pick the first top-level alias when nothing valid is selected. */
     private _ensureSelection(): void {
         if (this.selectedFolder) return
         if (this.selectedIndex < 0 || this.selectedIndex >= this.state.aliases.length) {
-            this.selectedIndex = this.state.aliases.length > 0 ? 0 : -1
+            // Only a top-level entry: opening one inside a folder would expand that folder in the tree.
+            this.selectedIndex = this.state.aliases.findIndex(x => !x.folder)
         }
     }
 

@@ -21,41 +21,11 @@
         <div class.bind="activeTab === 'visual' ? 'flex flex-1 min-h-0 overflow-hidden' : 'hidden'"
             style="flex:1;min-height:0;overflow:hidden;">
             <folder-tree-panel items.bind="state.aliases" folders.bind="state.aliasFolders"
-                selected-folder.two-way="selectedFolder" selected-index.two-way="selectedIndex" label="Aliases" item-label.bind="itemLabel"
+                selected-folder.two-way="selectedFolder" selected-index.two-way="selectedIndex" label="Aliases" item-label.bind="itemLabel" add-title="Add alias" on-add-item.bind="openAddDialog"
                 on-add.bind="addFolder" on-rename.bind="renameFolder" on-remove.bind="removeFolder" on-move.bind="moveToFolder"></folder-tree-panel>
             <div class="flex-1 overflow-y-auto p-4">
                 <p class="text-xs text-gray-500 mb-3">Friendly names for the ID of a Roster, Turnout, Sensor,
                     Route, or Sequence entry defined elsewhere in your configuration.</p>
-
-                <div data-testid="new-alias-form" class="flex items-end gap-3 mb-1">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Type</label>
-                        <div class="w-32">
-                            <input ref="newAliasTypeEl" type="text" data-testid="new-alias-type" />
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">ID</label>
-                        <div class="w-56">
-                            <input ref="newAliasIdEl" type="text" data-testid="new-alias-id" />
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-1 flex-1">
-                        <label class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Name</label>
-                        <input type="text" value.two-way="newAliasName" placeholder="NAME"
-                            keydown.trigger="handleNewAliasKeydown($event)"
-                            class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm font-mono placeholder-gray-400 dark:placeholder-gray-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors" />
-                    </div>
-                    <button click.trigger="addAlias()"
-                        class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors">
-                        Add Alias
-                    </button>
-                </div>
-
-                <div if.bind="newAliasError"
-                    class="mb-3 px-3 py-2 bg-red-50 dark:bg-red-950/60 border border-red-500/40 rounded-md text-red-700 dark:text-red-300 text-sm">
-                    ${newAliasError}
-                </div>
 
                 <div if.bind="errorMessage"
                     class="mb-3 px-3 py-2 bg-red-50 dark:bg-red-950/60 border border-red-500/40 rounded-md text-red-700 dark:text-red-300 text-sm">
@@ -69,7 +39,7 @@
                             d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 6h.008v.008H6V6z" />
                     </svg>
-                    <p class="text-sm">No aliases yet. Enter a name and an ID above, then click "Add Alias".</p>
+                    <p class="text-sm">No aliases yet. Click + to add one.</p>
                 </div>
 
                 <div if.bind="state.aliases.length > 0 && selectedIndices.length === 0" data-testid="alias-select-hint" class="text-sm text-gray-500 py-8 text-center">
