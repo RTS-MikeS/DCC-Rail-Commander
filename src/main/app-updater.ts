@@ -61,8 +61,10 @@ export class ElectronUpdaterBackend implements UpdateBackend {
     }
 
     quitAndInstall(): void {
-        // Silent (the user already confirmed in-app) and relaunch once the installer finishes.
-        autoUpdater.quitAndInstall(true, true)
+        // Not silent: the one-click NSIS installer shows its own progress window, so the user can see
+        // the update is installing between this window closing and the app coming back. Relaunch
+        // once the installer finishes.
+        autoUpdater.quitAndInstall(false, true)
     }
 }
 
