@@ -6,6 +6,8 @@ save separately, so the only button in the dialog is **Done**.
 
 ![Preferences dialog showing Appearance, Connection, Build, Config Editors, and Block Editor sections](assets/screenshots/preferences-dialog.png)
 
+![Preferences dialog, lower sections: Config Editors (including Remember expanded folders), Block Editor and Updates](assets/screenshots/preferences-dialog-lower.png)
+
 ## Appearance
 
 **Theme** — **Light**, **Dark**, or **System** (follows your OS setting).
@@ -30,7 +32,8 @@ save separately, so the only button in the dialog is **Done**.
 | Setting | Effect |
 |---|---|
 | Strict aliases | Requires an alias on every turnout, sensor, loco, route, and sequence — makes EXRAIL code read by name instead of by number. |
-| Alias sort order | How aliases are ordered within each type group in the [Aliases](config/aliases.md) editor and `myAliases.h`: by **Name** (alphabetical) or by **ID** (numeric). |
+| Alias sort order | How the `ALIAS` lines are ordered in `myAliases.h`: by **Name** (alphabetical) or by **ID** (numeric). The [Aliases](config/aliases.md) tree itself is always alphabetical. |
+| Remember expanded folders | On by default. Trees (roster, turnouts, aliases and the rest) always start collapsed; with this on, the folders you open stay open the next time you launch the app. Turning it off also forgets the saved layout. See [Folders and the tree](config/folders.md#expanding-and-collapsing). |
 | Default view | Which tab each config file editor opens on: **Visual** (form controls) or **Raw** (text). |
 
 ## Block Editor
@@ -52,8 +55,9 @@ When an update is found, an **Update** button appears in the header (the home sc
 you have, newest first. From there:
 
 - **Download update** downloads it in the background. You can close the dialog with **Later** while it downloads.
-- **Restart & install** closes the app, installs the update, and reopens it. If you have unsaved configuration
-  changes, you're asked first. If you choose **Later** instead, the update installs the next time you quit.
+- **Restart & install** closes the app, installs the update, and reopens it. The installer shows a progress
+  window while it works, and the first launch afterwards can take a little longer while the bundled build
+  tools are refreshed. If you have unsaved configuration changes, you're asked first. If you choose **Later** instead, the update installs the next time you quit.
 - **Skip this version** stops the automatic check from asking about this version again. A newer release will
   still be offered.
 

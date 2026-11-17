@@ -20,6 +20,26 @@ organized into folders instead of one long list. The same tree controls work the
     Folders exist only to help *you* find things in the editor. (The one exception is a Virtual turnout's
     children — see [Turnouts](turnouts.md#virtual-turnouts-as-groups).)
 
+## Expanding and collapsing
+
+Every tree starts **collapsed**, so a big layout opens as a short list of folders instead of a wall of
+entries. Click a folder's arrow to open or close it.
+
+- The **expand/collapse toggle** in the tree's header opens every folder at once; when anything is open,
+  the same button closes them all.
+- The folders you open are **remembered** the next time you launch the app. Turn this off with
+  **Remember expanded folders** in [Preferences](../preferences.md#config-editors); with it off, trees still
+  start collapsed each launch, and what you open is kept only for the session.
+- Selecting an entry (or dropping one into a folder) opens the folders leading to it, so it's never hidden.
+  Opening an editor does **not** open a folder just to select its first entry.
+- While you search the roster, matching folders open automatically; your own open/closed choices are left
+  alone and come back when you clear the search.
+
+## Sorting
+
+Every tree is sorted **alphabetically**, ignoring case, with numbers in natural order (*Loco 2* before
+*Loco 10*). Folders are listed first, then the entries inside them. This applies to all the editors above.
+
 ## Working with folders
 
 - **Create a folder** with the folder button in the sidebar header, or **New Folder…** from a row's **⋯**

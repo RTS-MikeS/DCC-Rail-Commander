@@ -17,6 +17,7 @@
         "postinstall": "node scripts/fetch-toolchain.mjs",
         "package": "pnpm build && electron-builder",
         "release": "node scripts/build-release.mjs",
+        "docs:shots": "pnpm build && node scripts/capture-doc-screenshots.mjs",
         "preview": "electron-vite preview",
         "start": "electron-vite dev",
         "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",

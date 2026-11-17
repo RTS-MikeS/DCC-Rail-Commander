@@ -4,26 +4,33 @@ The Aliases editor manages `myAliases.h` — friendly names for the ID of a Rost
 Sequence, or Automation entry defined elsewhere in your configuration, so other config files and EX-RAIL
 scripts can refer to it by name instead of a raw numeric ID.
 
-![Aliases editor, showing the Add Alias form and the grouped list of existing aliases below it](../assets/screenshots/aliases-editor.png)
+![Aliases editor, showing the alias folder tree on the left and the selected alias's fields on the right](../assets/screenshots/aliases-editor.png)
 
 ## Layout
 
 Unlike Routes, Sequences, Automations, and Event Handlers, the Aliases editor has no Blocks canvas — the
-**Visual** tab is a form: an **Add Alias** row at the top, and the existing aliases below it in a tree you can
-organize into [folders](folders.md), grouped by target type (Roster, Turnout, Sensor, Route, Sequence, Automation). Within each group they're sorted
-alphabetically by name by default, or numerically by ID if you change **Alias sort order** in
-[Preferences](../preferences.md). Each group header shows the group's name and entry count.
+**Visual** tab is a [folder tree](folders.md) of your aliases on the left and the selected alias's fields on
+the right. New aliases are filed in a folder named for their target type (Roster, Turnout, Sensor, Route,
+Sequence, Automation), and you can rearrange them like any other tree. The tree starts collapsed and is
+sorted alphabetically (see [Expanding and collapsing](folders.md#expanding-and-collapsing)). The order of
+the `ALIAS` lines written to `myAliases.h` follows **Alias sort order** in [Preferences](../preferences.md).
 
 ## Adding an alias
+
+Click **+** in the Aliases list to open the **Add Alias** dialog:
 
 1. Choose the target **Type** from the dropdown.
 2. Choose the target **ID** from the second dropdown — it lists only IDs of that type that don't already have
    an alias, refreshed each time you open it.
 3. Type a **Name** for the alias.
-4. Click **Add Alias**, or press **Enter** while in the Name field.
+4. Pick a **Folder**. It defaults to the folder for the chosen type (it's created if it doesn't exist yet),
+   and stays where you put it if you choose one yourself. Choose **(none)** for the top level.
+5. Click **Add Alias**, or press **Enter** in the Name field.
 
-If no ID is selected, or the name/ID combination is invalid, an error message appears above the list instead
-of adding the alias.
+![Add Alias dialog with Type, ID, Name and Folder fields](../assets/screenshots/aliases-add-dialog.png)
+
+If no ID is selected, or the name/ID combination is invalid, an error appears in the dialog and it stays
+open so you can fix it. **Cancel** closes it without adding anything.
 
 ## Alias fields
 
