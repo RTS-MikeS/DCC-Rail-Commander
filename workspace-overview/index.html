@@ -27,7 +27,7 @@
           <link rel="icon" href="../assets/images/favicon.png">
         
       
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.2">
     
     
       
@@ -35,7 +35,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.d7aee198.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.1d60cbd7.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.a45159b5.min.css">
@@ -460,6 +460,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#checks-when-a-project-loads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checks when a project loads
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -679,6 +690,8 @@
   
     
     
+      
+        
       
         
       
@@ -990,6 +1003,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/folders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Folders and the Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1165,6 +1206,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#checks-when-a-project-loads" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checks when a project loads
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1251,6 +1303,10 @@ screen.</p>
 <td>Opens the <strong>Review Changes</strong> dialog, showing a diff of every modified file — review and confirm from there. The button is disabled with no pending changes, and shows a small blue dot when there are.</td>
 </tr>
 <tr>
+<td><strong>History</strong></td>
+<td>Opens <strong>Local History</strong> for the file you're viewing: a diff of earlier versions of it that DCC Rail Commander itself overwrote on Save, with <strong>Restore This Version</strong>. Kept on this machine only, never in the project folder.</td>
+</tr>
+<tr>
 <td><strong>Connect / Disconnect</strong></td>
 <td>Opens or closes the actual serial connection to the board. This is independent of the Monitor panel below — Monitor is just a <em>view</em> over whatever connection state this button controls.</td>
 </tr>
@@ -1305,6 +1361,24 @@ screen.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="checks-when-a-project-loads">Checks when a project loads<a class="headerlink" href="#checks-when-a-project-loads" title="Permanent link">¶</a></h3>
+<p>Each time a project opens in the workspace, it's scanned for two problems that would otherwise surface only as a
+wall of confusing compiler errors, and you're offered a fix for each:</p>
+<ul>
+<li><strong>Duplicate automation blocks</strong> — the same <code>ROUTE</code>/<code>AUTOMATION</code>/<code>SEQUENCE</code> ID declared twice. <strong>Remove
+  Duplicates</strong> keeps the first copy of each and deletes the rest.</li>
+<li><strong>Unrecognized EXRAIL commands</strong> — macro names that aren't valid EXRAIL (e.g. copied from elsewhere or
+  misremembered). <strong>Comment Out &amp; Continue</strong> wraps each affected block in <code>/* */</code>, preserving the original text,
+  and opens the first affected file for review.</li>
+</ul>
+<p>Neither change touches disk until you Save, and the overwritten content is kept in <strong>History</strong> (above).
+<code>mySetup.h</code> and <code>myHal.cpp</code> are recognized as files the firmware/build handles itself, so they're never
+auto-included from <code>myAutomation.h</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Unsaved changes and confirmations</p>
+<p>Unsaved-changes tracking compares against what was last loaded or saved, so just visiting a view won't
+trigger the "unsaved changes" prompt. Every remove/delete button in the editors asks for confirmation first.</p>
+</div>
 <h2 id="visual-and-raw-editors">Visual and Raw editors<a class="headerlink" href="#visual-and-raw-editors" title="Permanent link">¶</a></h2>
 <p>Every configuration file editor (except Advanced) has a <strong>Visual</strong> / <strong>Raw</strong> toggle. Visual shows form
 controls and lists tailored to that file's content — roster entries, turnout definitions, and so on. Raw shows
@@ -1419,7 +1493,7 @@ whenever you need it again.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "code": null, "features": ["navigation.top", "navigation.indexes", "navigation.instant", "navigation.tracking", "toc.follow", "content.code.copy", "content.tabs.link", "search.suggest", "search.highlight"], "search": {"options": {"baseUrl": "..", "bundleUrl": "../search/", "highlight": true, "searchOptions": {}}, "provider": "pagefind"}, "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "code.collapse": "Collapse", "code.download": "Download", "code.expand": "Expand remaining # lines", "code.select": "Toggle line selection", "search.offline": "Switch to Lunr for offline search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.44453a05.min.js"></script>
+      <script src="../assets/javascripts/bundle.19ace10b.min.js"></script>
       
     
   

@@ -27,7 +27,7 @@
           <link rel="icon" href="../../assets/images/favicon.png">
         
       
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.2">
     
     
       
@@ -35,7 +35,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.d7aee198.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.1d60cbd7.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.a45159b5.min.css">
@@ -592,6 +592,8 @@
       
         
       
+        
+      
     
     
     
@@ -749,10 +751,82 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#organizing-turnouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Organizing turnouts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Organizing turnouts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#working-with-folders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working with folders
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moving-turnouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moving turnouts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#virtual-turnouts-as-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Virtual turnouts as groups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-the-tree-is-saved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the tree is saved
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#turnout-fields" class="md-nav__link">
     <span class="md-ellipsis">
       
         Turnout fields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloning-a-turnout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloning a turnout
       
     </span>
   </a>
@@ -1008,6 +1082,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../folders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Folders and the Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1172,10 +1274,82 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#organizing-turnouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Organizing turnouts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Organizing turnouts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#working-with-folders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Working with folders
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moving-turnouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Moving turnouts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#virtual-turnouts-as-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Virtual turnouts as groups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-the-tree-is-saved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the tree is saved
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#turnout-fields" class="md-nav__link">
     <span class="md-ellipsis">
       
         Turnout fields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloning-a-turnout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloning a turnout
       
     </span>
   </a>
@@ -1251,10 +1425,15 @@
 a DCC accessory decoder, a GPIO pin, or no hardware at all.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/screenshots/turnout-editor.png" data-desc-position="bottom"><img alt="Turnout editor, showing the turnout list on the left and a turnout's detail form on the right" src="../../assets/screenshots/turnout-editor.png"></a></p>
 <h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">¶</a></h2>
-<p>The left sidebar lists every turnout by description (or <code>Turnout &lt;id&gt;</code> if it has none); an amber dot marks any
-entry with no alias set while <strong>Strict aliases</strong> is enabled (see <a href="#aliases">Aliases</a> below). Click a row to
-load it into the detail panel, or the <strong>×</strong> on a row to delete it (with a confirmation prompt). Click <strong>+</strong> to
-add a new turnout.</p>
+<p>The left sidebar shows your turnouts as a tree. Each turnout is listed by description (or <code>Turnout &lt;id&gt;</code> if it
+has none); an amber dot marks any entry with no alias set while <strong>Strict aliases</strong> is enabled (see
+<a href="#aliases">Aliases</a> below). Click a row to load it into the detail panel. Each row has a <strong>⋯</strong> button (also
+available by right-clicking) with the actions for that row: <strong>Add Turnout Here…</strong>, <strong>New Folder…</strong>,
+<strong>Rename Folder…</strong>, <strong>Delete Folder</strong>, <strong>Clone…</strong> and <strong>Delete</strong> (with a confirmation prompt) — only the ones
+that apply to the row you opened it on are shown. Click <strong>+</strong> in the sidebar header to add a new turnout, or the
+folder button next to it to add a folder.</p>
+<p>With a small layout the tree is just a flat list. Once you have a lot of turnouts, see
+<a href="#organizing-turnouts">Organizing turnouts</a> below to group them.</p>
 <h2 id="adding-a-turnout">Adding a turnout<a class="headerlink" href="#adding-a-turnout" title="Permanent link">¶</a></h2>
 <p>Click <strong>+</strong>. A <strong>New Turnout</strong> dialog opens first, asking which kind to create:</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/screenshots/turnout-new-kind-picker.png" data-desc-position="bottom"><img alt="New Turnout dialog, with Servo preselected among the five kind options" src="../../assets/screenshots/turnout-new-kind-picker.png"></a></p>
@@ -1284,15 +1463,161 @@ add a new turnout.</p>
 </tr>
 <tr>
 <td><strong>Virtual (no hardware)</strong></td>
-<td>No hardware; driven entirely by <code>ONCLOSE</code>/<code>ONTHROW</code> event handlers elsewhere.</td>
+<td>No hardware; driven entirely by <code>ONCLOSE</code>/<code>ONTHROW</code> event handlers elsewhere. Can also act as a group — see <a href="#virtual-turnouts-as-groups">Virtual turnouts as groups</a>.</td>
 </tr>
 </tbody>
 </table>
 <p>Choosing <strong>Servo</strong> opens a second dialog to pick the driving pin before the entry is created:</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/screenshots/turnout-select-pin.png" data-desc-position="bottom"><img alt="Select Pin dialog, asking which VPin drives the new servo turnout" src="../../assets/screenshots/turnout-select-pin.png"></a></p>
+<p>The dialog picks an accessory board and a channel on it. Channels already used by another turnout, sensor or
+signal are not offered, and the first free channel is selected for you. On an EX-CSB1 only boards are listed (no
+direct MCU pin); if no servo board is declared yet, you're prompted to add one on <a href="../accessories/">Accessories</a>.</p>
 <p>The new turnout is created with the next unused turnout ID (or <code>200</code> if the list is empty). A new <strong>Servo</strong>
 turnout jumps straight into the servo calibration dialog (below) so you can set a sensible position before
 doing anything else.</p>
+<h2 id="organizing-turnouts">Organizing turnouts<a class="headerlink" href="#organizing-turnouts" title="Permanent link">¶</a></h2>
+<p>As the number of turnouts grows, you can arrange them in the sidebar tree. There are two kinds of branch:</p>
+<table>
+<thead>
+<tr>
+<th>Branch</th>
+<th>What it is</th>
+<th>Effect on your layout</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Folder</strong></td>
+<td>A named container, like <code>Yard</code> or <code>Yard / East</code>. Folders can be nested.</td>
+<td><strong>None.</strong> Purely for organizing the list.</td>
+</tr>
+<tr>
+<td><strong>Virtual turnout</strong></td>
+<td>A <a href="#adding-a-turnout">Virtual</a> turnout with other turnouts placed under it.</td>
+<td><strong>Wires them to the virtual turnout's events</strong> — see <a href="#virtual-turnouts-as-groups">below</a>.</td>
+</tr>
+</tbody>
+</table>
+<p>Turnouts are always the leaves of the tree.</p>
+<div class="admonition important">
+<p class="admonition-title">Folders are for organization only</p>
+<p>Putting a turnout in a folder, moving it between folders, or renaming or deleting a folder <strong>never changes
+what is compiled or uploaded to your CommandStation</strong>. The turnout keeps the same ID, the same hardware
+settings and the same <code>SERVO_TURNOUT(...)</code> / <code>TURNOUT(...)</code> / <code>PIN_TURNOUT(...)</code> line in <code>myTurnouts.h</code>.
+Folders exist only to help <em>you</em> find things in the editor.</p>
+<p>The only case where a turnout's position in the tree changes the firmware is when it sits <strong>under a Virtual
+turnout</strong>.</p>
+</div>
+<h3 id="working-with-folders">Working with folders<a class="headerlink" href="#working-with-folders" title="Permanent link">¶</a></h3>
+<ul>
+<li><strong>Create a folder</strong> with the folder button in the sidebar header, or <strong>New Folder…</strong> from a row's <strong>⋯</strong> menu
+  (on a folder row this creates a subfolder). Folder names can't contain <code>/</code>, or be blank. An empty folder is
+  kept, so you can set up your structure before adding turnouts.</li>
+<li><strong>Rename</strong> a folder from its <strong>⋯</strong> menu or from the panel shown when you select it. Renaming carries
+  everything inside it along.</li>
+<li><strong>Delete</strong> a folder the same way. <strong>Its turnouts are not deleted</strong> — they move up one level, into the
+  folder's parent (or the top level).</li>
+<li><strong>Add a turnout into a folder</strong> by selecting the folder and clicking <strong>+</strong>, or from <strong>Add Turnout Here…</strong> on
+  its row. With a turnout selected, <strong>+</strong> adds the new turnout next to it.</li>
+</ul>
+<h3 id="moving-turnouts">Moving turnouts<a class="headerlink" href="#moving-turnouts" title="Permanent link">¶</a></h3>
+<p>There are two ways, both equivalent:</p>
+<ul>
+<li><strong>Drag and drop</strong> a turnout (or a whole folder) onto a folder or a Virtual turnout to move it in. Drop it on
+  an ordinary turnout to put it at that turnout's level, or on empty space to move it to the top level. The
+  cursor shows a <strong>+</strong> only where the item can really be nested — a folder or a Virtual turnout — and a
+  no-entry symbol where a drop isn't allowed (onto itself, or a folder into one of its own subfolders).</li>
+<li>The <strong>Location</strong> drop-down on a turnout's detail panel (in the Kind card) lists <strong>Top level</strong>, every folder,
+  and every Virtual turnout it can go under.</li>
+</ul>
+<h3 id="virtual-turnouts-as-groups">Virtual turnouts as groups<a class="headerlink" href="#virtual-turnouts-as-groups" title="Permanent link">¶</a></h3>
+<p>A Virtual turnout can also be a branch: place other turnouts under it and they become its children. Use this
+when one throw/close of a virtual turnout should drive several real turnouts — for example a single "Yard Hub"
+control that sets a whole ladder of points.</p>
+<p>DCC Rail Commander keeps the matching EX-RAIL in <code>myEvents.h</code> for you. When a turnout is placed under a Virtual
+turnout <code>Yard Hub</code> (ID <code>300</code>), the editor makes sure these handlers exist and include the child:</p>
+<div class="highlight"><pre><span></span><code>ONCLOSE(300)
+CLOSE(201)
+DONE
+
+ONTHROW(300)
+THROW(201)
+DONE
+</code></pre></div>
+<ul>
+<li><strong>Adding</strong> a turnout under the Virtual turnout adds it to both handlers; <strong>creating</strong> either handler first if
+  it doesn't exist yet.</li>
+<li><strong>Moving it out</strong>, or deleting it, removes its lines again. If you change the turnout's ID, its lines follow.</li>
+<li><strong>Aliases are used when set.</strong> A turnout with an alias is written by name — <code>ONCLOSE(YARD_HUB)</code>,
+  <code>CLOSE(YARD_ENTRY)</code> — otherwise by number. If you add, rename or clear an alias later, the generated lines are
+  updated to match, so they keep working with <a href="#aliases">Strict aliases</a> and show correctly in the
+  <a href="../event-handlers/">Event Handlers</a> block editor.</li>
+<li><strong>Your own handlers are respected.</strong> An existing <code>ONCLOSE(300)</code> you wrote by hand is recognised (by number or
+  by alias) and the child is added to it rather than creating a second one. A handler that shares its body with
+  another trigger (for example <code>ONCLOSE(300)</code> stacked with <code>ONCLOSE(301)</code>) is left alone, and the child gets its
+  own handlers instead.</li>
+<li>If you <strong>delete the Virtual turnout</strong> or change it to another kind, its children are moved up one level (to
+  the Virtual turnout's own folder, or the top level), and the existing handlers are left exactly as they were —
+  nothing you wrote is removed.</li>
+<li>If you <strong>change the Virtual turnout's ID</strong>, its children stay attached and get fresh handlers under the new ID.
+  The old <code>ONCLOSE</code>/<code>ONTHROW</code> handlers for the previous ID are left as they were, so remove them yourself if
+  they're no longer wanted.</li>
+</ul>
+<p>The Virtual turnout's form shows whether its children are covered:</p>
+<ul>
+<li><em>"Turnouts placed under this one in the tree are added to its ONCLOSE/ONTHROW events automatically."</em> — no
+  children yet.</li>
+<li><em>"Events set up: N turnouts in ONCLOSE/ONTHROW (myEvents.h)."</em> — everything is wired up.</li>
+<li>An amber warning with an <strong>Add missing</strong> button — some children aren't in the events yet. This happens when
+  a hierarchy comes from a hand-edited or imported <code>myTurnouts.h</code>, since opening a file never changes it.
+  Click <strong>Add missing</strong> to generate them.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A turnout is either in a folder <strong>or</strong> under a Virtual turnout, not both. A Virtual turnout can itself live
+in a folder, and can be nested under another Virtual turnout (but never under itself or one of its own
+children).</p>
+</div>
+<h3 id="how-the-tree-is-saved">How the tree is saved<a class="headerlink" href="#how-the-tree-is-saved" title="Permanent link">¶</a></h3>
+<p>The tree is stored <strong>only in comments</strong> in <code>myTurnouts.h</code>, directly above the entries they apply to, so the
+EX-RAIL lines the firmware reads are never altered:</p>
+<div class="highlight"><pre><span></span><code>// @tree-folder: Spare
+// @tree: Yard/East
+SERVO_TURNOUT(200, 25, 410, 205, Slow, "Main Line Junction")
+VIRTUAL_TURNOUT(300, "Yard Hub")
+// @tree: #300
+SERVO_TURNOUT(201, 26, 410, 205, Fast, "Yard Entry")
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Comment</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>// @tree: Yard/East</code></td>
+<td>The next turnout lives in folder <code>Yard</code>, subfolder <code>East</code>.</td>
+</tr>
+<tr>
+<td><code>// @tree: #300</code></td>
+<td>The next turnout is a child of Virtual turnout <code>300</code>.</td>
+</tr>
+<tr>
+<td><code>// @tree-folder: Spare</code></td>
+<td>An empty folder that has no turnouts yet.</td>
+</tr>
+</tbody>
+</table>
+<p>A tag applies to the <strong>next turnout line only</strong>. You can safely hand-edit these comments in the Raw view; a tag
+that points at a missing or non-Virtual turnout, or that would form a loop, is ignored and the turnout simply
+shows at the top level, so a turnout is never hidden by a bad tag. Files written before this feature, or by
+other tools, have no tags and show as a flat list.</p>
+<div class="admonition note">
+<p class="admonition-title">Where the tree isn't used yet</p>
+<p>The throttle's turnouts list doesn't use the folder structure yet — it shows turnouts as a flat list.</p>
+</div>
 <h2 id="turnout-fields">Turnout fields<a class="headerlink" href="#turnout-fields" title="Permanent link">¶</a></h2>
 <p>Every kind shares <strong>ID</strong> (must be unique — saving with a duplicate ID shows an error naming the conflicting
 turnout), <strong>Description</strong>, <strong>Comment</strong>, and <strong>Default State</strong>; the rest depend on kind:</p>
@@ -1326,9 +1651,18 @@ turnout), <strong>Description</strong>, <strong>Comment</strong>, and <strong>De
 </tr>
 </tbody>
 </table>
+<p>Every kind also has a <strong>Location</strong> field (where the turnout sits in the tree — see
+<a href="#organizing-turnouts">Organizing turnouts</a>). It doesn't affect the firmware.</p>
 <p>Changing <strong>Kind</strong> on an existing turnout converts it to the new kind's shape, generating fresh defaults for any
 newly-required fields while preserving ID, Description, Comment, and Default State. Switching to Servo this way
 also opens the pin-picker dialog to choose the driving pin.</p>
+<h2 id="cloning-a-turnout">Cloning a turnout<a class="headerlink" href="#cloning-a-turnout" title="Permanent link">¶</a></h2>
+<p><strong>Clone…</strong> (in a row's <strong>⋯</strong> menu) opens a <strong>Clone Turnout</strong> dialog that creates a second turnout on the same
+pin/address. Enter a new <strong>ID</strong>, choose a <strong>Profile</strong> (Servo only), and leave <strong>Hidden from throttles</strong> ticked
+for the common case: a user-facing turnout paired with a hidden twin (e.g. an <code>Instant</code>-profile servo, or a relay
+for frog power) that EXRAIL automation drives directly. Hidden turnouts are written with the bare <code>HIDDEN</code>
+description, are shown with an eye-off icon in the sidebar, and are left out of the Throttle's turnouts list by
+default (see <a href="../../throttle/">Throttle</a>).</p>
 <h2 id="default-state-and-startup">Default State and Startup<a class="headerlink" href="#default-state-and-startup" title="Permanent link">¶</a></h2>
 <p><strong>Default State</strong> is <code>CLOSED</code> or <code>THROWN</code>. Setting it to <code>THROWN</code> causes DCC Rail Commander to emit a
 <code>THROW(...)</code> call in an <code>AUTOSTART</code> block in <code>myStartup.h</code>, using the turnout's alias name if it has one,
@@ -1366,6 +1700,10 @@ an error if you try to save it without one).</p>
 <p>Switch to the <strong>Raw</strong> tab to edit <code>myTurnouts.h</code> directly in a Monaco editor. Lines that can't be parsed back
 into the visual model are automatically commented out with <code>// [INVALID]</code> and a toast notification appears so
 you can find and fix them — they aren't discarded.</p>
+<p>The tree is stored in this file too, as <code>// @tree:</code> comments (see
+<a href="#how-the-tree-is-saved">How the tree is saved</a>). Editing the raw text replaces the whole tree with whatever
+the text says, and does <strong>not</strong> update <code>myEvents.h</code> — if you move turnouts under a Virtual turnout this way, use
+the <strong>Add missing</strong> button on the Virtual turnout afterwards.</p>
 
 
 
@@ -1465,7 +1803,7 @@ you can find and fix them — they aren't discarded.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "code": null, "features": ["navigation.top", "navigation.indexes", "navigation.instant", "navigation.tracking", "toc.follow", "content.code.copy", "content.tabs.link", "search.suggest", "search.highlight"], "search": {"options": {"baseUrl": "../..", "bundleUrl": "../../search/", "highlight": true, "searchOptions": {}}, "provider": "pagefind"}, "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "code.collapse": "Collapse", "code.download": "Download", "code.expand": "Expand remaining # lines", "code.select": "Toggle line selection", "search.offline": "Switch to Lunr for offline search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.44453a05.min.js"></script>
+      <script src="../../assets/javascripts/bundle.19ace10b.min.js"></script>
       
     
   

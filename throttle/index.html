@@ -27,7 +27,7 @@
           <link rel="icon" href="../assets/images/favicon.png">
         
       
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.2">
     
     
       
@@ -35,7 +35,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.d7aee198.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.1d60cbd7.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.a45159b5.min.css">
@@ -590,6 +590,8 @@
       
         
       
+        
+      
     
     
     
@@ -869,6 +871,34 @@
     
   
     Aliases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/folders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Folders and the Tree
   
 
     
@@ -1247,7 +1277,7 @@ confirmation — releasing stops controlling the loco but doesn't stop it, it ke
 <p>For a loco matched to a roster entry, the function grid shows only the functions your roster actually defines
 for it, labeled by name (e.g. "Light", "Horn") — a function slot the roster marks as unused still takes its
 place in the grid but is disabled, since it still occupies a real F-number on the decoder. For a loco added by
-raw address (no roster match), all 29 functions (F0–F28) are shown with generic "Fn" labels so you can still
+raw address (no roster match), all 69 functions (F0–F68) are shown with generic "Fn" labels so you can still
 test the loco.</p>
 <p>Functions defined as momentary in the roster act as press-and-hold — the function is on only while the button
 is held down. Other functions are latching toggle buttons: click to turn on, click again to turn off.</p>
@@ -1258,7 +1288,10 @@ turnouts without leaving the throttle panel:</p>
 <li><strong>Routes</strong> lists each configured route with a live <strong>Active</strong>/<strong>Inactive</strong> status (derived from the state of
   the turnouts it throws/closes) and a <strong>Trigger</strong> button to run it.</li>
 <li><strong>Turnouts</strong> lists each configured turnout with its live state — <strong>Unknown</strong>, <strong>Thrown</strong>, or <strong>Closed</strong> — and
-  a toggle button; toggling from Unknown throws the turnout.</li>
+  a toggle button; toggling from Unknown throws the turnout.
+  Turnouts marked <code>HIDDEN</code> (hidden from throttles) are left out of the list by default. When any exist, a
+  <strong>Show hidden turnouts</strong> checkbox appears; ticking it lists them too, with their description masked as
+  "Hidden turnout".</li>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Not the same as the Startup defaults</p>
@@ -1364,7 +1397,7 @@ configured default state — that's set separately in <a href="../config/startup
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "code": null, "features": ["navigation.top", "navigation.indexes", "navigation.instant", "navigation.tracking", "toc.follow", "content.code.copy", "content.tabs.link", "search.suggest", "search.highlight"], "search": {"options": {"baseUrl": "..", "bundleUrl": "../search/", "highlight": true, "searchOptions": {}}, "provider": "pagefind"}, "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "code.collapse": "Collapse", "code.download": "Download", "code.expand": "Expand remaining # lines", "code.select": "Toggle line selection", "search.offline": "Switch to Lunr for offline search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.44453a05.min.js"></script>
+      <script src="../assets/javascripts/bundle.19ace10b.min.js"></script>
       
     
   

@@ -25,7 +25,7 @@
           <link rel="icon" href="../assets/images/favicon.png">
         
       
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.2">
     
     
       
@@ -33,7 +33,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.d7aee198.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.1d60cbd7.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.a45159b5.min.css">
@@ -588,6 +588,8 @@
       
         
       
+        
+      
     
     
     
@@ -880,6 +882,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/folders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Folders and the Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1089,6 +1119,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1178,6 +1219,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updates
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1203,6 +1255,7 @@
 workspace title bar. Every toggle applies (and is saved) immediately as you change it; there's nothing to
 save separately, so the only button in the dialog is <strong>Done</strong>.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/screenshots/preferences-dialog.png" data-desc-position="bottom"><img alt="Preferences dialog showing Appearance, Connection, Build, Config Editors, and Block Editor sections" src="../assets/screenshots/preferences-dialog.png"></a></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../assets/screenshots/preferences-dialog-lower.png" data-desc-position="bottom"><img alt="Preferences dialog, lower sections: Config Editors (including Remember expanded folders), Block Editor and Updates" src="../assets/screenshots/preferences-dialog-lower.png"></a></p>
 <h2 id="appearance">Appearance<a class="headerlink" href="#appearance" title="Permanent link">¶</a></h2>
 <p><strong>Theme</strong> — <strong>Light</strong>, <strong>Dark</strong>, or <strong>System</strong> (follows your OS setting).</p>
 <h2 id="connection">Connection<a class="headerlink" href="#connection" title="Permanent link">¶</a></h2>
@@ -1261,6 +1314,14 @@ save separately, so the only button in the dialog is <strong>Done</strong>.</p>
 <td>Requires an alias on every turnout, sensor, loco, route, and sequence — makes EXRAIL code read by name instead of by number.</td>
 </tr>
 <tr>
+<td>Alias sort order</td>
+<td>How the <code>ALIAS</code> lines are ordered in <code>myAliases.h</code>: by <strong>Name</strong> (alphabetical) or by <strong>ID</strong> (numeric). The <a href="../config/aliases/">Aliases</a> tree itself is always alphabetical.</td>
+</tr>
+<tr>
+<td>Remember expanded folders</td>
+<td>On by default. Trees (roster, turnouts, aliases and the rest) always start collapsed; with this on, the folders you open stay open the next time you launch the app. Turning it off also forgets the saved layout. See <a href="../config/folders/#expanding-and-collapsing">Folders and the tree</a>.</td>
+</tr>
+<tr>
 <td>Default view</td>
 <td>Which tab each config file editor opens on: <strong>Visual</strong> (form controls) or <strong>Raw</strong> (text).</td>
 </tr>
@@ -1268,6 +1329,38 @@ save separately, so the only button in the dialog is <strong>Done</strong>.</p>
 </table>
 <h2 id="block-editor">Block Editor<a class="headerlink" href="#block-editor" title="Permanent link">¶</a></h2>
 <p><strong>Play sounds</strong> — plays click, connect, and delete sound effects in the EXRAIL block editor.</p>
+<p>The dialog footer also shows the app's version number (it's on the home screen too).</p>
+<h2 id="updates">Updates<a class="headerlink" href="#updates" title="Permanent link">¶</a></h2>
+<p>Shows the version of DCC Rail Commander you're running, and whether a newer one is available.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Check for updates</td>
+<td>Checks GitHub for a newer release right now. If there is one, the update dialog opens with its release notes — even if you previously chose <strong>Skip this version</strong>.</td>
+</tr>
+<tr>
+<td>Check automatically</td>
+<td>Checks a few seconds after the app starts, then every 4 hours while it stays open. Only the startup check opens the update dialog; later checks just show the <strong>Update</strong> button. Turn off to keep the app from contacting GitHub except when you press <strong>Check for updates</strong> (fetching DCC-EX firmware still needs network access).</td>
+</tr>
+</tbody>
+</table>
+<p>When an update is found, an <strong>Update</strong> button appears in the header (the home screen's top-right corner, or the workspace toolbar next to Settings). It reads <strong>Update available</strong>, then <strong>Updating 42%</strong> while downloading, then <strong>Restart to update</strong>; click it to open the update dialog. The dialog shows the release notes for every version newer than the one
+you have, newest first. From there:</p>
+<ul>
+<li><strong>Download update</strong> downloads it in the background. You can close the dialog with <strong>Later</strong> while it downloads.</li>
+<li><strong>Restart &amp; install</strong> closes the app, installs the update, and reopens it. The installer shows a progress
+  window while it works, and the first launch afterwards can take a little longer while the bundled build
+  tools are refreshed. If you have unsaved configuration changes, you're asked first. If you choose <strong>Later</strong> instead, the update installs the next time you quit.</li>
+<li><strong>Skip this version</strong> stops the automatic check from asking about this version again. A newer release will
+  still be offered.</li>
+</ul>
+<p>Updates are only available in the installed app.</p>
 <div class="admonition tip">
 <p class="admonition-title">Theme and default view apply everywhere</p>
 <p>Theme and Default view take effect immediately across the whole app, including editors already open — no
@@ -1372,7 +1465,7 @@ need to reopen a file or restart to see the change.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "code": null, "features": ["navigation.top", "navigation.indexes", "navigation.instant", "navigation.tracking", "toc.follow", "content.code.copy", "content.tabs.link", "search.suggest", "search.highlight"], "search": {"options": {"baseUrl": "..", "bundleUrl": "../search/", "highlight": true, "searchOptions": {}}, "provider": "pagefind"}, "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "code.collapse": "Collapse", "code.download": "Download", "code.expand": "Expand remaining # lines", "code.select": "Toggle line selection", "search.offline": "Switch to Lunr for offline search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.44453a05.min.js"></script>
+      <script src="../assets/javascripts/bundle.19ace10b.min.js"></script>
       
     
   

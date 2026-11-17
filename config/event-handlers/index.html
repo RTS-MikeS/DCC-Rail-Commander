@@ -27,7 +27,7 @@
           <link rel="icon" href="../../assets/images/favicon.png">
         
       
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.2">
     
     
       
@@ -35,7 +35,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.d7aee198.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.1d60cbd7.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.a45159b5.min.css">
@@ -592,6 +592,8 @@
       
         
       
+        
+      
     
     
     
@@ -986,6 +988,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../folders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Folders and the Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1210,6 +1240,11 @@ handler has no ID, alias, or separate description field — the whole on-disk bl
 edited as one unit.</p>
 <p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/screenshots/event-handlers-editor.png" data-desc-position="bottom"><img alt="Event Handlers editor, showing the handler list with its Add dropdown on the left and a handler's Blocks canvas on the right" src="../../assets/screenshots/event-handlers-editor.png"></a></p>
 <h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">¶</a></h2>
+<div class="admonition tip">
+<p class="admonition-title">Organize with folders</p>
+<p>This editor's sidebar is a tree: group event handlers into folders and drag them around. See
+<a href="../folders/">Folders and the tree</a>.</p>
+</div>
 <p>The left sidebar has an <strong>Add</strong> control at the top — a dropdown of handler types, grouped by category, next
 to a <strong>+</strong> button — above the list of handlers already in your file. Each row shows a friendly label built
 from the handler type and its arguments (for example "On sensor changed (200)"). Click a row to load it, or
@@ -1242,6 +1277,11 @@ examples:</p>
 <tr>
 <td><code>ONBUTTON</code></td>
 <td>On button pressed</td>
+<td>Sensor</td>
+</tr>
+<tr>
+<td><code>ONBUTTON</code> (as "On sensor active")</td>
+<td>On sensor active</td>
 <td>Sensor</td>
 </tr>
 <tr>
@@ -1298,6 +1338,19 @@ examples:</p>
 </table>
 <p>A handler that needs a turnout, sensor, signal, or similar reference is only offered once at least one of that
 kind exists in your project.</p>
+<div class="admonition tip">
+<p class="admonition-title">Handlers for Virtual turnouts can be generated</p>
+<p>When you place turnouts under a Virtual turnout in the <a href="../turnouts/#virtual-turnouts-as-groups">Turnouts</a> tree,
+the matching <code>ONCLOSE</code> / <code>ONTHROW</code> handlers are created and kept up to date for you. You can edit them here
+like any other handler.</p>
+</div>
+<p>"On sensor active" is only a logical helper: it exists in the dropdown to make the "active" concept easier to
+find and understand, but it compiles to the exact same <code>ONBUTTON</code> command as "On button pressed" — there is no
+separate <code>ONSENSORACTIVE</code> EXRAIL command. Because the Blocks canvas always re-derives a block's face from the
+literal command word in its text, a handler added this way renders as "On button pressed" as soon as its Blocks
+canvas is shown — immediately after adding it, not just after a save/reload. To keep a visible trace of what was
+actually picked, the new entry's <code>DONE</code> block carries a comment bubble noting it was added as "On sensor active";
+that comment round-trips through save/reload like any other block comment, even though the hat block above it does not.</p>
 <h2 id="blocks-and-raw-per-handler">Blocks and Raw, per handler<a class="headerlink" href="#blocks-and-raw-per-handler" title="Permanent link">¶</a></h2>
 <p>Each event handler has its own independent <strong>Blocks</strong> / <strong>Raw</strong> toggle, using the same underlying canvas as
 <a href="../routes/#the-blocks-canvas">Routes</a>: a nested category palette, an always-visible flyout, and a read-only
@@ -1407,7 +1460,7 @@ event handler has no separate structured header to split out.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "code": null, "features": ["navigation.top", "navigation.indexes", "navigation.instant", "navigation.tracking", "toc.follow", "content.code.copy", "content.tabs.link", "search.suggest", "search.highlight"], "search": {"options": {"baseUrl": "../..", "bundleUrl": "../../search/", "highlight": true, "searchOptions": {}}, "provider": "pagefind"}, "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "code.collapse": "Collapse", "code.download": "Download", "code.expand": "Expand remaining # lines", "code.select": "Toggle line selection", "search.offline": "Switch to Lunr for offline search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.44453a05.min.js"></script>
+      <script src="../../assets/javascripts/bundle.19ace10b.min.js"></script>
       
     
   

@@ -13,7 +13,7 @@
         <link rel="prev" href="../event-handlers/">
       
       
-        <link rel="next" href="../../compile-upload/">
+        <link rel="next" href="../folders/">
       
       
         
@@ -27,7 +27,7 @@
           <link rel="icon" href="../../assets/images/favicon.png">
         
       
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.0">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-materialx-10.2.2">
     
     
       
@@ -35,7 +35,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.d7aee198.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.1d60cbd7.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.a45159b5.min.css">
@@ -592,6 +592,8 @@
       
         
       
+        
+      
     
     
     
@@ -986,6 +988,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../folders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Folders and the Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1206,22 +1236,28 @@
 <p>The Aliases editor manages <code>myAliases.h</code> — friendly names for the ID of a Roster, Turnout, Sensor, Route,
 Sequence, or Automation entry defined elsewhere in your configuration, so other config files and EX-RAIL
 scripts can refer to it by name instead of a raw numeric ID.</p>
-<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/screenshots/aliases-editor.png" data-desc-position="bottom"><img alt="Aliases editor, showing the Add Alias form and the grouped list of existing aliases below it" src="../../assets/screenshots/aliases-editor.png"></a></p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/screenshots/aliases-editor.png" data-desc-position="bottom"><img alt="Aliases editor, showing the alias folder tree on the left and the selected alias's fields on the right" src="../../assets/screenshots/aliases-editor.png"></a></p>
 <h2 id="layout">Layout<a class="headerlink" href="#layout" title="Permanent link">¶</a></h2>
 <p>Unlike Routes, Sequences, Automations, and Event Handlers, the Aliases editor has no Blocks canvas — the
-<strong>Visual</strong> tab is a form: an <strong>Add Alias</strong> row at the top, and the existing aliases below it, grouped by
-target type (Roster, Turnout, Sensor, Route, Sequence, Automation) and sorted alphabetically by name within
-each group. Each group header shows the group's name and entry count.</p>
+<strong>Visual</strong> tab is a <a href="../folders/">folder tree</a> of your aliases on the left and the selected alias's fields on
+the right. New aliases are filed in a folder named for their target type (Roster, Turnout, Sensor, Route,
+Sequence, Automation), and you can rearrange them like any other tree. The tree starts collapsed and is
+sorted alphabetically (see <a href="../folders/#expanding-and-collapsing">Expanding and collapsing</a>). The order of
+the <code>ALIAS</code> lines written to <code>myAliases.h</code> follows <strong>Alias sort order</strong> in <a href="../../preferences/">Preferences</a>.</p>
 <h2 id="adding-an-alias">Adding an alias<a class="headerlink" href="#adding-an-alias" title="Permanent link">¶</a></h2>
+<p>Click <strong>+</strong> in the Aliases list to open the <strong>Add Alias</strong> dialog:</p>
 <ol>
 <li>Choose the target <strong>Type</strong> from the dropdown.</li>
 <li>Choose the target <strong>ID</strong> from the second dropdown — it lists only IDs of that type that don't already have
    an alias, refreshed each time you open it.</li>
 <li>Type a <strong>Name</strong> for the alias.</li>
-<li>Click <strong>Add Alias</strong>, or press <strong>Enter</strong> while in the Name field.</li>
+<li>Pick a <strong>Folder</strong>. It defaults to the folder for the chosen type (it's created if it doesn't exist yet),
+   and stays where you put it if you choose one yourself. Choose <strong>(none)</strong> for the top level.</li>
+<li>Click <strong>Add Alias</strong>, or press <strong>Enter</strong> in the Name field.</li>
 </ol>
-<p>If no ID is selected, or the name/ID combination is invalid, an error message appears above the list instead
-of adding the alias.</p>
+<p><a class="glightbox" data-type="image" data-width="auto" data-height="auto" href="../../assets/screenshots/aliases-add-dialog.png" data-desc-position="bottom"><img alt="Add Alias dialog with Type, ID, Name and Folder fields" src="../../assets/screenshots/aliases-add-dialog.png"></a></p>
+<p>If no ID is selected, or the name/ID combination is invalid, an error appears in the dialog and it stays
+open so you can fix it. <strong>Cancel</strong> closes it without adding anything.</p>
 <h2 id="alias-fields">Alias fields<a class="headerlink" href="#alias-fields" title="Permanent link">¶</a></h2>
 <table>
 <thead>
@@ -1248,7 +1284,7 @@ of adding the alias.</p>
 <h2 id="editing-and-removing">Editing and removing<a class="headerlink" href="#editing-and-removing" title="Permanent link">¶</a></h2>
 <p>Edit a row's <strong>Name</strong> or <strong>ID</strong> directly and it commits when you leave the field (on blur). An edit that fails
 validation shows an error message and reverts the whole list to its last valid state, so no other row's edit
-is lost in the process. Click <strong>×</strong> on a row to remove that alias.</p>
+is lost in the process. Click <strong>×</strong> on a row to remove that alias (you'll be asked to confirm first).</p>
 <h2 id="raw-view">Raw view<a class="headerlink" href="#raw-view" title="Permanent link">¶</a></h2>
 <p>Switch to the <strong>Raw</strong> tab to edit <code>myAliases.h</code> directly in a Monaco editor. Each alias is written as
 <code>ALIAS(name, id)</code>, with its target type recorded in a trailing <code>// type: &lt;Type&gt;</code> comment so the Visual tab can
@@ -1352,7 +1388,7 @@ round-trip it back into the correct group.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "code": null, "features": ["navigation.top", "navigation.indexes", "navigation.instant", "navigation.tracking", "toc.follow", "content.code.copy", "content.tabs.link", "search.suggest", "search.highlight"], "search": {"options": {"baseUrl": "../..", "bundleUrl": "../../search/", "highlight": true, "searchOptions": {}}, "provider": "pagefind"}, "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "code.collapse": "Collapse", "code.download": "Download", "code.expand": "Expand remaining # lines", "code.select": "Toggle line selection", "search.offline": "Switch to Lunr for offline search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.44453a05.min.js"></script>
+      <script src="../../assets/javascripts/bundle.19ace10b.min.js"></script>
       
     
   
