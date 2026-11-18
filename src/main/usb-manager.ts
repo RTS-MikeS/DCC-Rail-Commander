@@ -1,10 +1,11 @@
 import { BrowserWindow } from 'electron'
 import { SerialPort } from 'serialport'
-import * as usbPkg from 'usb'
+import { WebUSB } from 'usb'
 
-// usb v2: hotplug events live on `usbPkg.usb` (the inner libusb wrapper).
-// `usbPkg.getDeviceList()` is re-exported at the top level for convenience.
-const usbEmitter = usbPkg.usb
+// usb v3 exposes a WebUSB-style API: async `getDevices()` and `connect`/`disconnect`
+// events. The default `usb` instance only lists devices that were explicitly authorised,
+// so use our own instance that allows everything (we only ever read VID/PID, never open them).
+const usbEmitter = new WebUSB({ allowAllDevices: true })
 
 export interface SerialDeviceInfo {
     path: string
@@ -149,18 +150,21 @@ export class UsbManager {
     // ── Raw USB helpers ────────────────────────────────────────────────────────
 
     /** List all USB devices visible to the OS (via libusb). */
-    listUsbDevices(): UsbDeviceInfo[] {
-        return usbPkg.getDeviceList().map((device) => ({
-            vendorId: device.deviceDescriptor.idVendor,
-            productId: device.deviceDescriptor.idProduct,
-            deviceAddress: device.deviceAddress,
-            busNumber: device.busNumber,
+    async listUsbDevices(): Promise<UsbDeviceInfo[]> {
+        const devices = await usbEmitter.getDevices()
+        return devices.map((device) => ({
+            vendorId: device.vendorId,
+            productId: device.productId,
+            deviceAddress: device.address,
+            // usb v3 reports the bus as a string (e.g. "1-1"); keep only the leading number.
+            busNumber: parseInt(device.bus, 10) || 0,
+            // String-descriptor indices are not exposed by the WebUSB API.
             deviceDescriptor: {
-                idVendor: device.deviceDescriptor.idVendor,
-                idProduct: device.deviceDescriptor.idProduct,
-                iManufacturer: device.deviceDescriptor.iManufacturer,
-                iProduct: device.deviceDescriptor.iProduct,
-                iSerialNumber: device.deviceDescriptor.iSerialNumber,
+                idVendor: device.vendorId,
+                idProduct: device.productId,
+                iManufacturer: 0,
+                iProduct: 0,
+                iSerialNumber: 0,
             },
         }))
     }
@@ -168,17 +172,17 @@ export class UsbManager {
     // ── Hot-plug monitoring ────────────────────────────────────────────────────
 
     private watchHotplug(): void {
-        usbEmitter.on('attach', (device) => {
+        usbEmitter.addEventListener('connect', (ev) => {
             this.broadcastToRenderer('usb:attached', {
-                vendorId: device.deviceDescriptor.idVendor,
-                productId: device.deviceDescriptor.idProduct,
+                vendorId: ev.device.vendorId,
+                productId: ev.device.productId,
             })
         })
 
-        usbEmitter.on('detach', (device) => {
+        usbEmitter.addEventListener('disconnect', (ev) => {
             this.broadcastToRenderer('usb:detached', {
-                vendorId: device.deviceDescriptor.idVendor,
-                productId: device.deviceDescriptor.idProduct,
+                vendorId: ev.device.vendorId,
+                productId: ev.device.productId,
             })
         })
     }

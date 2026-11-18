@@ -1,4 +1,7 @@
 /* See ./README.md */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const usb: any = { on: () => { } }
-export const getDeviceList: any = () => []
+export class WebUSB {
+    constructor(_opts?: any) { }
+    addEventListener: any = () => { }
+    getDevices: any = async () => []
+}
