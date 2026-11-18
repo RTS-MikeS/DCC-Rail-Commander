@@ -265,7 +265,7 @@ etc.) — they compile via `new Function()`, which Electron's CSP blocks. Build 
 toggling CSS classes (`class="${cond ? '...' : 'hidden'}"`), not `if.bind` — `if.bind` fully destroys/recreates
 the element, which destroys the SF widget instance too.
 
-**Syncfusion is deliberately held at 32.x.** The license key in `syncfusion-license.txt` is issued per major version; with 33+ the app shows a `sf-license-validation-banner` that intercepts clicks and breaks most e2e tests. 33+ also moved the theme CSS out of the `ej2-*/styles` folders into separate `@syncfusion/ej2-tailwind-theme` / `ej2-tailwind-dark-theme` packages, so `styles/ej2-theme-*.css` would need new imports. Upgrade only together with a new key (`pnpm up --latest` will try to bump it).
+**Syncfusion 33+ specifics.** The license key in `syncfusion-license.txt` is issued per major version; a key for an older major makes the app show a `sf-license-validation-banner` that intercepts clicks and breaks most e2e tests, so bump the key together with the packages. Since 33 the theme CSS lives in the separate `@syncfusion/ej2-tailwind-theme` / `ej2-tailwind-dark-theme` packages (imported from `styles/ej2-theme-*.css`) instead of `ej2-*/styles`. Popups are laid out `position:absolute` against body coordinates, so a popup re-parented into a native `<dialog>` must be pinned explicitly (see `hoistPopup()` in `add-alias-dialog.ts`) — `refreshPosition()` alone does not fix it.
 
 ### Routing
 
