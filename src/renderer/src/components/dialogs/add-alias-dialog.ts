@@ -51,10 +51,20 @@ export class AddAliasDialog implements IDialogCustomElementViewModel {
      * matter its z-index — and Syncfusion parents its popups to <body>, so they'd open invisibly behind
      * the modal. Re-parent the popup into the dialog (it's position:fixed, so nothing else changes).
      */
-    private hoistPopup = (args: PopupEventArgs): void => {
+    private hoistPopup = (owner: () => DropDownList | undefined) => (args: PopupEventArgs): void => {
         const host = this.typeEl?.closest('dialog')
         const el = args.popup?.element
-        if (host && el && el.parentElement !== host) host.appendChild(el)
+        if (!host || !el) return
+        if (el.parentElement !== host) host.appendChild(el)
+        // Syncfusion 33+ lays the popup out as position:absolute against body coordinates, which
+        // no longer lines up once it lives inside the dialog. Pin it under its input explicitly.
+        const anchor = owner()?.element.closest('.e-ddl')
+        if (!anchor) return
+        const rect = anchor.getBoundingClientRect()
+        el.style.position = 'fixed'
+        el.style.left = `${rect.left}px`
+        el.style.top = `${rect.bottom}px`
+        el.style.minWidth = `${rect.width}px`
     }
 
     attached(): void {
@@ -62,7 +72,7 @@ export class AddAliasDialog implements IDialogCustomElementViewModel {
             dataSource: [...TYPE_OPTIONS],
             fields: { text: 'text', value: 'value' },
             value: this.aliasType,
-            open: this.hoistPopup,
+            open: this.hoistPopup(() => this.sfType),
             change: (args) => {
                 this.aliasType = (args.value as AliasTargetType) ?? 'Roster'
                 this.targetId = null
@@ -84,7 +94,7 @@ export class AddAliasDialog implements IDialogCustomElementViewModel {
             beforeOpen: () => {
                 if (this.sfId) this.sfId.dataSource = this.state.getAvailableAliasTargetIds(this.aliasType)
             },
-            open: this.hoistPopup,
+            open: this.hoistPopup(() => this.sfId),
             change: (args) => {
                 this.targetId = typeof args.value === 'number' ? args.value : null
                 this.errorMessage = ''

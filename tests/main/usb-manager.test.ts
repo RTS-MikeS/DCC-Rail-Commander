@@ -13,8 +13,10 @@ vi.mock('electron', () => ({
 }))
 
 vi.mock('usb', () => ({
-    usb: { on: vi.fn() },
-    getDeviceList: vi.fn(() => []),
+    WebUSB: class {
+        addEventListener = vi.fn()
+        getDevices = vi.fn(async () => [])
+    },
 }))
 
 // Queue of results the mocked SerialPort constructor's callback resolves with,

@@ -196,3 +196,6 @@ resources/
 
 # Personal Claude Code overrides (permission mode, etc.) — not shared with the team.
 .claude/settings.local.json
+
+# Syncfusion MCP API key (local only)
+syncfusion-mcp-key.txt

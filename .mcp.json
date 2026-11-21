@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "aurelia-docs": {
+      "type": "http",
+      "url": "https://docs.aurelia.io/~gitbook/mcp"
+    },
+    "sf-typescript-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@syncfusion/typescript-mcp@latest"],
+      "env": {
+        "Syncfusion_API_Key_Path": "syncfusion-mcp-key.txt"
+      }
+    }
+  }
+}

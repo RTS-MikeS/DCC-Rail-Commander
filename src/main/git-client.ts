@@ -1,6 +1,6 @@
 import { join } from 'path'
 import { app } from 'electron'
-import simpleGit, { SimpleGit } from 'simple-git'
+import { simpleGit, type SimpleGit } from 'simple-git'
 
 /**
  * simple-git just forwards whatever child_process.spawn('git', ...) throws, which for

@@ -24,7 +24,7 @@ const mockGitInstance = {
 }
 
 vi.mock('simple-git', () => ({
-    default: vi.fn(() => mockGitInstance),
+    simpleGit: vi.fn(() => mockGitInstance),
 }))
 
 import { GitService } from '../../src/main/git-client'
