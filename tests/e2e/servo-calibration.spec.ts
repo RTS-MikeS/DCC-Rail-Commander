@@ -90,7 +90,35 @@ test.describe('Servo Calibration', () => {
         await expect(numericInput(page, 'Thrown position')).toHaveValue('410')
     })
 
-    test('typing a thrown position does not send a live move command', async ({ workspacePage: page }) => {
+    // Regression: Syncfusion 35's dark theme package omitted the spin-button glyphs, so the
+    // jog arrows rendered as empty boxes (clicking them still worked, so other tests missed it).
+    test('both position fields show visible up/down jog buttons with icon glyphs', async ({ workspacePage: page }) => {
+        await openCalibrationDialog(page)
+
+        for (const label of ['Closed position', 'Thrown position']) {
+            for (const cls of ['.e-spin-up', '.e-spin-down']) {
+                const btn = dialog(page).locator('label', { hasText: label }).locator('..').locator(cls)
+                await expect(btn).toBeVisible()
+                const glyph = await btn.evaluate(el => {
+                    const s = getComputedStyle(el, '::before')
+                    return { content: s.content, family: s.fontFamily }
+                })
+                expect(glyph.content, `${label} ${cls} glyph`).not.toMatch(/^(none|normal|"")$/)
+                expect(glyph.family).toContain('e-icons')
+            }
+        }
+    })
+
+    test('clicking the down stepper arrow decrements the thrown position', async ({ workspacePage: page }) => {
+        await openCalibrationDialog(page)
+        const thrownInput = numericInput(page, 'Thrown position')
+        await expect(thrownInput).toHaveValue('410')
+
+        await dialog(page).locator('label', { hasText: 'Thrown position' }).locator('..').locator('.e-spin-down').click()
+        await expect(thrownInput).toHaveValue('409')
+    })
+
+    test('typing a thrown position does not send a live move command',async ({ workspacePage: page }) => {
         await trackServoEvents(page)
         await openCalibrationDialog(page)
         await expect(dialog(page).getByText('Connected', { exact: false })).toBeVisible({ timeout: 5_000 })

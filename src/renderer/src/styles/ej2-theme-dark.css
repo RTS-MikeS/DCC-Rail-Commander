@@ -4,3 +4,16 @@
    src/renderer/src/services/theme.service.ts.
    Syncfusion 33+ ships all component styles in one theme package. */
 @import "@syncfusion/ej2-tailwind-dark-theme/styles/tailwind-dark.css";
+
+/* @syncfusion/ej2-tailwind-dark-theme 35.x omits the NumericTextBox spin-button
+   glyphs from numerictextbox/numerictextbox.css (the light theme package and the
+   dark theme's bundled "customized" build both have them), so the up/down jog
+   buttons render as empty boxes. Re-declare them here. */
+.e-input-group-icon.e-spin-up::before {
+    content: "\e776";
+    font-family: "e-icons";
+}
+.e-input-group-icon.e-spin-down::before {
+    content: "\e729";
+    font-family: "e-icons";
+}
