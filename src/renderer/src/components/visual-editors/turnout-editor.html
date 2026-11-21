@@ -97,35 +97,15 @@
                             ${errorMessage}
                         </div>
 
-                        <!-- Kind selector — shared across all turnout types. Switching kind
-                             converts the entry's shape (fresh defaults for newly-required
-                             fields), preserving id/description/comment/default state. -->
+                        <!-- Main configuration card. Kind is fixed once a turnout is created
+                             (pick the right kind in the add dialog, or delete and re-add). -->
                         <div class="bg-gray-100/70 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-lg p-4">
-                            <div class="flex flex-col gap-1.5">
-                                <label
-                                    class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Kind</label>
-                                <select
-                                    class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                    value.bind="editBuffer.type" change.trigger="updateType(editBuffer.type)">
-                                    <option repeat.for="t of turnoutTypes" value.bind="t.value">${t.label}</option>
-                                </select>
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Kind</span>
+                                <span data-testid="turnout-kind" class="text-sm font-medium text-gray-800 dark:text-gray-200">${kindLabel}</span>
                             </div>
-                            <!-- Where this turnout sits in the sidebar tree — organisation only. -->
-                            <div class="flex flex-col gap-1.5 mt-4">
-                                <label for="turnout-location"
-                                    class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Location</label>
-                                <select id="turnout-location" data-testid="turnout-location"
-                                    class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                    value.bind="locationValue" change.trigger="onLocationChange()">
-                                    <option repeat.for="o of locationOptions" value.bind="o.value">${o.label}</option>
-                                </select>
-                                <p class="text-[11px] text-gray-500">Only organises this list. Nest under a Virtual turnout to make it a branch.</p>
-                            </div>
-                        </div>
-
                         <!-- Input form: SERVO_TURNOUT -->
-                        <div if.bind="editBuffer.type === 'SERVO'"
-                            class="bg-gray-100/70 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-lg p-4">
+                        <div if.bind="editBuffer.type === 'SERVO'">
                             <div class="flex flex-col gap-4">
 
                                 <div class="flex gap-4">
@@ -141,36 +121,24 @@
                                             (VPin)</label>
                                         <vpin-picker value.two-way="editBuffer.pin" on-commit.bind="onFieldBlur" role="servo"></vpin-picker>
                                     </div>
-                                </div>
-
-                                <div class="flex gap-4">
                                     <div class="flex flex-col gap-1.5 flex-1">
-                                        <label
-                                            class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Active
-                                            Angle</label>
-                                        <input type="number" min="0" max="512"
-                                            class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm w-28 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                            value.bind="editBuffer.activeAngle" blur.trigger="onFieldBlur()" />
-                                    </div>
-                                    <div class="flex flex-col gap-1.5 flex-1">
-                                        <label
-                                            class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Inactive
-                                            Angle</label>
-                                        <input type="number" min="0" max="512"
-                                            class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm w-28 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                            value.bind="editBuffer.inactiveAngle" blur.trigger="onFieldBlur()" />
-                                    </div>
-                                    <div class="flex flex-col gap-1.5 flex-1">
-                                        <label
-                                            class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Profile</label>
-                                        <select
-                                            class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                            value.bind="editBuffer.profile"
-                                            change.trigger="updateProfile(editBuffer.profile)">
-                                            <option repeat.for="p of profiles" value.bind="p">${p}</option>
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default State</label>
+                                        <select class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+                                            value.bind="editBuffer.defaultState"
+                                            change.trigger="updateDefaultState(editBuffer.defaultState)">
+                                            <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
                                         </select>
                                     </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Alias</label>
+                                        <input type="text" value.bind="aliasInput" blur.trigger="onAliasBlur()"
+                                            placeholder="Optional alias"
+                                            title="Letters, numbers, and underscores only; must start with a letter or underscore. Can't be an EXRAIL command name."
+                                            class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors placeholder-gray-400 dark:placeholder-gray-600" />
+                                    </div>
                                 </div>
+                                <p class="text-[11px] text-gray-500">Alias is optional (letters, numbers, underscores; must start with a letter or underscore). When Default State is THROWN, DCC-Rail-Commander emits
+                                    THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
 
                                 <div class="flex flex-col gap-1.5">
                                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
@@ -201,24 +169,11 @@
                                         blur.trigger="onFieldBlur()" />
                                 </div>
 
-                                <div class="flex flex-col gap-1.5">
-                                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default
-                                        State</label>
-                                    <select
-                                        class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                        value.bind="editBuffer.defaultState"
-                                        change.trigger="updateDefaultState(editBuffer.defaultState)">
-                                        <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
-                                    </select>
-                                    <p class="text-[11px] text-gray-500">When set to THROWN, DCC-Rail-Commander emits
-                                        THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
-                                </div>
                             </div>
                         </div>
 
                         <!-- Input form: TURNOUT (DCC accessory decoder) -->
-                        <div if.bind="editBuffer.type === 'DCC'"
-                            class="bg-gray-100/70 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-lg p-4">
+                        <div if.bind="editBuffer.type === 'DCC'">
                             <div class="flex flex-col gap-4">
                                 <div class="flex gap-4">
                                     <div class="flex flex-col gap-1.5 flex-1">
@@ -242,7 +197,24 @@
                                             class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm w-24 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
                                             value.bind="editBuffer.subAddr" blur.trigger="onFieldBlur()" />
                                     </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default State</label>
+                                        <select class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+                                            value.bind="editBuffer.defaultState"
+                                            change.trigger="updateDefaultState(editBuffer.defaultState)">
+                                            <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Alias</label>
+                                        <input type="text" value.bind="aliasInput" blur.trigger="onAliasBlur()"
+                                            placeholder="Optional alias"
+                                            title="Letters, numbers, and underscores only; must start with a letter or underscore. Can't be an EXRAIL command name."
+                                            class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors placeholder-gray-400 dark:placeholder-gray-600" />
+                                    </div>
                                 </div>
+                                <p class="text-[11px] text-gray-500">Alias is optional (letters, numbers, underscores; must start with a letter or underscore). When Default State is THROWN, DCC-Rail-Commander emits
+                                    THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
                                 <div class="flex flex-col gap-1.5">
                                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                                         <input type="checkbox" checked.bind="isHidden"
@@ -270,24 +242,11 @@
                                         placeholder="Optional comment (appears after // in file)"
                                         blur.trigger="onFieldBlur()" />
                                 </div>
-                                <div class="flex flex-col gap-1.5">
-                                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default
-                                        State</label>
-                                    <select
-                                        class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                        value.bind="editBuffer.defaultState"
-                                        change.trigger="updateDefaultState(editBuffer.defaultState)">
-                                        <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
-                                    </select>
-                                    <p class="text-[11px] text-gray-500">When set to THROWN, DCC-Rail-Commander emits
-                                        THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
-                                </div>
                             </div>
                         </div>
 
                         <!-- Input form: PIN_TURNOUT (GPIO) -->
-                        <div if.bind="editBuffer.type === 'PIN'"
-                            class="bg-gray-100/70 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-lg p-4">
+                        <div if.bind="editBuffer.type === 'PIN'">
                             <div class="flex flex-col gap-4">
                                 <div class="flex gap-4">
                                     <div class="flex flex-col gap-1.5 flex-1">
@@ -302,7 +261,24 @@
                                             (VPin)</label>
                                         <vpin-picker value.two-way="editBuffer.pin" on-commit.bind="onFieldBlur"></vpin-picker>
                                     </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default State</label>
+                                        <select class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+                                            value.bind="editBuffer.defaultState"
+                                            change.trigger="updateDefaultState(editBuffer.defaultState)">
+                                            <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Alias</label>
+                                        <input type="text" value.bind="aliasInput" blur.trigger="onAliasBlur()"
+                                            placeholder="Optional alias"
+                                            title="Letters, numbers, and underscores only; must start with a letter or underscore. Can't be an EXRAIL command name."
+                                            class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors placeholder-gray-400 dark:placeholder-gray-600" />
+                                    </div>
                                 </div>
+                                <p class="text-[11px] text-gray-500">Alias is optional (letters, numbers, underscores; must start with a letter or underscore). When Default State is THROWN, DCC-Rail-Commander emits
+                                    THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
                                 <div class="flex flex-col gap-1.5">
                                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                                         <input type="checkbox" checked.bind="isHidden"
@@ -330,24 +306,11 @@
                                         placeholder="Optional comment (appears after // in file)"
                                         blur.trigger="onFieldBlur()" />
                                 </div>
-                                <div class="flex flex-col gap-1.5">
-                                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default
-                                        State</label>
-                                    <select
-                                        class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                        value.bind="editBuffer.defaultState"
-                                        change.trigger="updateDefaultState(editBuffer.defaultState)">
-                                        <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
-                                    </select>
-                                    <p class="text-[11px] text-gray-500">When set to THROWN, DCC-Rail-Commander emits
-                                        THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
-                                </div>
                             </div>
                         </div>
 
                         <!-- Input form: TURNOUTL (DCC accessory, linear address) -->
-                        <div if.bind="editBuffer.type === 'DCCL'"
-                            class="bg-gray-100/70 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-lg p-4">
+                        <div if.bind="editBuffer.type === 'DCCL'">
                             <div class="flex flex-col gap-4">
                                 <div class="flex gap-4">
                                     <div class="flex flex-col gap-1.5 flex-1">
@@ -365,7 +328,24 @@
                                             class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm w-24 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
                                             value.bind="editBuffer.addr" blur.trigger="onFieldBlur()" />
                                     </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default State</label>
+                                        <select class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+                                            value.bind="editBuffer.defaultState"
+                                            change.trigger="updateDefaultState(editBuffer.defaultState)">
+                                            <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Alias</label>
+                                        <input type="text" value.bind="aliasInput" blur.trigger="onAliasBlur()"
+                                            placeholder="Optional alias"
+                                            title="Letters, numbers, and underscores only; must start with a letter or underscore. Can't be an EXRAIL command name."
+                                            class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors placeholder-gray-400 dark:placeholder-gray-600" />
+                                    </div>
                                 </div>
+                                <p class="text-[11px] text-gray-500">Alias is optional (letters, numbers, underscores; must start with a letter or underscore). When Default State is THROWN, DCC-Rail-Commander emits
+                                    THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
                                 <div class="flex flex-col gap-1.5">
                                     <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                                         <input type="checkbox" checked.bind="isHidden"
@@ -393,32 +373,38 @@
                                         placeholder="Optional comment (appears after // in file)"
                                         blur.trigger="onFieldBlur()" />
                                 </div>
-                                <div class="flex flex-col gap-1.5">
-                                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default
-                                        State</label>
-                                    <select
-                                        class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                        value.bind="editBuffer.defaultState"
-                                        change.trigger="updateDefaultState(editBuffer.defaultState)">
-                                        <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
-                                    </select>
-                                    <p class="text-[11px] text-gray-500">When set to THROWN, DCC-Rail-Commander emits
-                                        THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
-                                </div>
                             </div>
                         </div>
 
                         <!-- Input form: VIRTUAL_TURNOUT (no hardware, driven by ONCLOSE/ONTHROW) -->
-                        <div if.bind="editBuffer.type === 'VIRTUAL'"
-                            class="bg-gray-100/70 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-lg p-4">
+                        <div if.bind="editBuffer.type === 'VIRTUAL'">
                             <div class="flex flex-col gap-4">
-                                <div class="flex flex-col gap-1.5 flex-1" style="max-width: 8rem;">
+                                <div class="flex gap-4">
+                                    <div class="flex flex-col gap-1.5 flex-1">
                                     <label
                                         class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">ID</label>
                                     <input type="number"
                                         class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm w-24 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
                                         value.bind="editBuffer.id" blur.trigger="onFieldBlur()" />
                                 </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default State</label>
+                                        <select class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+                                            value.bind="editBuffer.defaultState"
+                                            change.trigger="updateDefaultState(editBuffer.defaultState)">
+                                            <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex flex-col gap-1.5 flex-1">
+                                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Alias</label>
+                                        <input type="text" value.bind="aliasInput" blur.trigger="onAliasBlur()"
+                                            placeholder="Optional alias"
+                                            title="Letters, numbers, and underscores only; must start with a letter or underscore. Can't be an EXRAIL command name."
+                                            class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors placeholder-gray-400 dark:placeholder-gray-600" />
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-gray-500">Alias is optional (letters, numbers, underscores; must start with a letter or underscore). When Default State is THROWN, DCC-Rail-Commander emits
+                                    THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
                                 <p class="text-[11px] text-gray-500">No hardware — this turnout is driven entirely by
                                     ONCLOSE/ONTHROW event handlers elsewhere (myEvents.h).</p>
                                 <div class="flex flex-col gap-1.5">
@@ -473,47 +459,38 @@
                                         placeholder="Optional comment (appears after // in file)"
                                         blur.trigger="onFieldBlur()" />
                                 </div>
-                                <div class="flex flex-col gap-1.5">
-                                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Default
-                                        State</label>
-                                    <select
-                                        class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
-                                        value.bind="editBuffer.defaultState"
-                                        change.trigger="updateDefaultState(editBuffer.defaultState)">
-                                        <option repeat.for="state of defaultStates" value.bind="state">${state}</option>
-                                    </select>
-                                    <p class="text-[11px] text-gray-500">When set to THROWN, DCC-Rail-Commander emits
-                                        THROW(${aliasInput || editBuffer.id}) in an AUTOSTART block in myStartup.h.</p>
-                                </div>
                             </div>
                         </div>
 
-                        <!-- Alias (myAliases.h) — shared across all turnout types; hoisted out of the
-                             type-specific if.bind blocks above so this field doesn't get
-                             recreated on every switch between differently-typed turnouts. -->
-                        <div class="bg-gray-100/70 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-lg p-4">
+                            <!-- Location + Alias: shared across all turnout kinds. -->
+                            <div class="flex flex-col gap-4 mt-4">
+                            <!-- Where this turnout sits in the sidebar tree — organisation only. -->
                             <div class="flex flex-col gap-1.5">
-                                <label
-                                    class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Alias</label>
-                                <input type="text" value.bind="aliasInput" blur.trigger="onAliasBlur()"
-                                    placeholder="Optional alias from myAliases.h"
-                                    title="Letters, numbers, and underscores only; must start with a letter or underscore. Can't be an EXRAIL command name."
-                                    class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm placeholder-gray-400 dark:placeholder-gray-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors" />
-                                <p class="text-[11px] text-gray-500">Optional. Letters, numbers, and underscores;
-                                    must start with a letter or underscore.</p>
+                                <label for="turnout-location"
+                                    class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Location</label>
+                                <select id="turnout-location" data-testid="turnout-location"
+                                    class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-white/15 text-gray-900 dark:text-gray-100 rounded-md px-2.5 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+                                    value.bind="locationValue" change.trigger="onLocationChange()">
+                                    <option repeat.for="o of locationOptions" value.bind="o.value">${o.label}</option>
+                                </select>
+                                <p class="text-[11px] text-gray-500">Only organises this list. Nest under a Virtual turnout to make it a branch.</p>
                             </div>
+                                                        </div>
                         </div>
 
-                        <!-- Configuration summary + visual angle bar (SERVO only) -->
+                        <!-- Configuration (SERVO only): read-only values + angle bar; the modal is the only way to change them. -->
                         <div if.bind="editBuffer.type === 'SERVO'"
                             class="bg-gray-100/70 dark:bg-gray-800/50 border border-gray-200 dark:border-white/10 rounded-lg p-4">
                             <div class="flex items-center justify-between mb-3">
-                                <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Configuration
-                                    Summary</h3>
-                                <button click.trigger="openServoCalibration()"
-                                    class="px-2.5 py-1 text-xs font-medium rounded bg-blue-600 hover:bg-blue-500 text-white transition-colors">
-                                    Test/Calibrate Servo&hellip;
-                                </button>
+                                <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Configuration</h3>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" data-testid="servo-close" click.trigger="openServoCalibration()"
+                                        class="px-2.5 py-1 text-xs font-medium rounded bg-green-600 hover:bg-green-500 text-white transition-colors">Close</button>
+                                    <button type="button" data-testid="servo-throw" click.trigger="openServoCalibration()"
+                                        class="px-2.5 py-1 text-xs font-medium rounded bg-red-600 hover:bg-red-500 text-white transition-colors">Throw</button>
+                                    <button type="button" data-testid="servo-configure" click.trigger="openServoCalibration()"
+                                        class="px-2.5 py-1 text-xs font-medium rounded bg-blue-600 hover:bg-blue-500 text-white transition-colors">Configure&hellip;</button>
+                                </div>
                             </div>
 
                             <div class="flex flex-wrap gap-4 mb-4">

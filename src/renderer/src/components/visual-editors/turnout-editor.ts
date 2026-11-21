@@ -338,12 +338,6 @@ export class TurnoutEditorCustomElement {
         this.commitBuffer()
     }
 
-    updateProfile(profile: TurnoutProfile): void {
-        if (!this.editBuffer || this.editBuffer.type !== 'SERVO') return
-        this.editBuffer.profile = profile
-        this.commitBuffer()
-    }
-
     updateDefaultState(defaultState: TurnoutDefaultState): void {
         if (!this.editBuffer) return
         this.editBuffer.defaultState = defaultState
@@ -375,36 +369,9 @@ export class TurnoutEditorCustomElement {
         return pin
     }
 
-    /**
-     * Switches the selected entry to a different turnout kind, converting to that kind's
-     * shape (fresh sensible defaults for any newly-required fields) while preserving the
-     * fields common to every kind (id, description, comment, defaultState). Used both for
-     * changing an existing entry's kind and, indirectly, by addEntry() below (which asks
-     * for the kind up front via TurnoutTypeDialog, then builds the shape the same way).
-     */
-    async updateType(type: TurnoutType): Promise<void> {
-        if (!this.editBuffer || this.editBuffer.type === type) return
-        const base = {
-            id: this.editBuffer.id,
-            description: this.editBuffer.description,
-            comment: this.editBuffer.comment,
-            defaultState: this.editBuffer.defaultState,
-        }
-        if (type === 'SERVO') {
-            if (!(await this._ensureServoBoard())) return
-            const pin = await this._pickPin(this._nextFreeVpin())
-            if (pin === null) return
-            this.editBuffer ={ ...base, type: 'SERVO', pin, activeAngle: 400, inactiveAngle: 350, profile: 'Slow' }
-        } else if (type === 'DCC') {
-            this.editBuffer = { ...base, type: 'DCC', addr: 0, subAddr: 0 }
-        } else if (type === 'DCCL') {
-            this.editBuffer = { ...base, type: 'DCCL', addr: 0 }
-        } else if (type === 'PIN') {
-            this.editBuffer = { ...base, type: 'PIN', pin: this._nextFreeVpin() }
-        } else {
-            this.editBuffer = { ...base, type: 'VIRTUAL' }
-        }
-        this.commitBuffer()
+    /** Read-only kind of the selected turnout — kind is fixed at creation (delete and re-add to change it). */
+    get kindLabel(): string {
+        return this.turnoutTypes.find(t => t.value === this.editBuffer?.type)?.label ?? ''
     }
 
     // ── Add / remove entries ──────────────────────────────────────────────────
@@ -413,9 +380,8 @@ export class TurnoutEditorCustomElement {
         // New entries land in the selected folder / next to the selected turnout, unless told otherwise.
         const placement = location ?? this._defaultContainer()
 
-        // Ask which kind to create up front, rather than always creating a SERVO
-        // and making the user switch kind afterward via the detail panel's Kind
-        // dropdown.
+        // Ask which kind to create up front, rather than always creating a SERVO.
+        // Kind can't be changed afterward.
         const type = await this._pickType()
         if (type === null) return
 

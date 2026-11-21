@@ -55,7 +55,7 @@ async function getServoEvents(page: import('@playwright/test').Page): Promise<st
 async function openCalibrationDialog(page: import('@playwright/test').Page) {
     await openTurnoutEditor(page)
     await page.locator('#turnout-treeview li.e-list-item').filter({ hasText: 'Main Line Junction' }).first().locator('.e-fullrow').first().click()
-    await page.getByRole('button', { name: 'Calibrate Servo…' }).click()
+    await page.getByTestId('servo-configure').click()
     await expect(dialog(page).getByText('Calibrate Servo', { exact: true })).toBeVisible()
 }
 
@@ -212,7 +212,7 @@ test.describe('Servo Calibration', () => {
 
         await openTurnoutEditor(page)
         await page.locator('#turnout-treeview li.e-list-item').filter({ hasText: 'Main Line Junction' }).first().locator('.e-fullrow').first().click()
-        await page.getByRole('button', { name: 'Calibrate Servo…' }).click()
+        await page.getByTestId('servo-configure').click()
         await expect(dialog(page).getByText('Calibrate Servo', { exact: true })).toBeVisible()
         await expect(dialog(page).getByText('Could not connect', { exact: false })).toBeVisible({ timeout: 5_000 })
 

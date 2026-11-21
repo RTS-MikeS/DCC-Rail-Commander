@@ -230,7 +230,7 @@ test.describe('Turnout Editor', () => {
         await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeVisible()
 
         // Opening the menu must not have selected the row
-        await expect(page.locator('#turnout-splitter label', { hasText: 'Kind' })).not.toBeVisible()
+        await expect(page.getByTestId('turnout-kind')).not.toBeVisible()
 
         await page.mouse.click(5, 5)
         await expect(page.locator('ul.e-contextmenu')).not.toBeVisible()
